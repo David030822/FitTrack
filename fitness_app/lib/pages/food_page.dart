@@ -248,7 +248,9 @@ class _FoodPageState extends State<FoodPage> {
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 20),
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -270,7 +272,9 @@ class _FoodPageState extends State<FoodPage> {
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 15),
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -290,7 +294,38 @@ class _FoodPageState extends State<FoodPage> {
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 15),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Remaining: ',
+                      style: GoogleFonts.dmSerifText(
+                        fontSize: 24,
+                        color: Theme.of(context).colorScheme.inversePrimary,
+                      ),
+                    ),
+                    Consumer<FoodDatabase>(
+                      builder: (context, foodDatabase, child) {
+                        final caloriesRemaining = foodDatabase.appSettings.dailyIntakeGoal - foodDatabase.appSettings.totalIntake;
+                        return Text(
+                          caloriesRemaining == 0 
+                            ? 'Done for today' 
+                            : caloriesRemaining.toString(),
+                          style: GoogleFonts.dmSerifText(
+                            fontSize: 24,
+                            color: Theme.of(context).colorScheme.inversePrimary,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
+
                 Text(
                   'My meals today:',
                   style: GoogleFonts.dmSerifText(
