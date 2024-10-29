@@ -162,23 +162,6 @@ class _MainPageState extends State<MainPage> {
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                // Column(
-                //   crossAxisAlignment: CrossAxisAlignment.center,
-                //   children: [
-                //     // heading
-                //     Padding(
-                //       padding: const EdgeInsets.only(left: 25.0),
-                //       child: Text(
-                //         'Fitness App',
-                //         style: GoogleFonts.dmSerifText(
-                //           fontSize: 36,
-                //           color: Theme.of(context).colorScheme.inversePrimary,
-                //         ),
-                //       ),
-                //     ),
-                //   ],
-                // ),
-                // SizedBox(height: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -297,6 +280,33 @@ class _MainPageState extends State<MainPage> {
                             final caloriesBurnt = foodDatabase.appSettings.totalBurnt;
                             return Text(
                               caloriesBurnt == 0.0 ? 'Zero' : caloriesBurnt.toString(),
+                              style: GoogleFonts.dmSerifText(
+                                fontSize: 24,
+                                color: Theme.of(context).colorScheme.inversePrimary,
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 0),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Remaining: ',
+                          style: GoogleFonts.dmSerifText(
+                            fontSize: 24,
+                            color: Theme.of(context).colorScheme.inversePrimary,
+                          ),
+                        ),
+                        Consumer<FoodDatabase>(
+                          builder: (context, foodDatabase, child) {
+                            final caloriesRemaining = foodDatabase.appSettings.dailyBurnGoal - foodDatabase.appSettings.totalBurnt;
+                            return Text(
+                              caloriesRemaining == 0.0 ? 'Done for today' : caloriesRemaining.toString(),
                               style: GoogleFonts.dmSerifText(
                                 fontSize: 24,
                                 color: Theme.of(context).colorScheme.inversePrimary,
