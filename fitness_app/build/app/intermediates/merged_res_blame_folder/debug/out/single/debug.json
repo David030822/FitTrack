@@ -1,0 +1,70 @@
+[
+    {
+        "merged": "com.example.fitness_app-merged_res-8:/drawable-night-mdpi_android12splash.png.flat",
+        "source": "com.example.fitness_app-main-1:/drawable-night-mdpi/android12splash.png"
+    },
+    {
+        "merged": "com.example.fitness_app-merged_res-8:/drawable-v21_launch_background.xml.flat",
+        "source": "com.example.fitness_app-main-1:/drawable-v21/launch_background.xml"
+    },
+    {
+        "merged": "com.example.fitness_app-merged_res-8:/drawable-xhdpi_android12splash.png.flat",
+        "source": "com.example.fitness_app-main-1:/drawable-xhdpi/android12splash.png"
+    },
+    {
+        "merged": "com.example.fitness_app-merged_res-8:/drawable-xxxhdpi_android12splash.png.flat",
+        "source": "com.example.fitness_app-main-1:/drawable-xxxhdpi/android12splash.png"
+    },
+    {
+        "merged": "com.example.fitness_app-merged_res-8:/mipmap-mdpi_ic_launcher.png.flat",
+        "source": "com.example.fitness_app-main-1:/mipmap-mdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.example.fitness_app-merged_res-8:/drawable-night-hdpi_android12splash.png.flat",
+        "source": "com.example.fitness_app-main-1:/drawable-night-hdpi/android12splash.png"
+    },
+    {
+        "merged": "com.example.fitness_app-merged_res-8:/drawable-mdpi_android12splash.png.flat",
+        "source": "com.example.fitness_app-main-1:/drawable-mdpi/android12splash.png"
+    },
+    {
+        "merged": "com.example.fitness_app-merged_res-8:/drawable-v21_background.png.flat",
+        "source": "com.example.fitness_app-main-1:/drawable-v21/background.png"
+    },
+    {
+        "merged": "com.example.fitness_app-merged_res-8:/mipmap-xxxhdpi_ic_launcher.png.flat",
+        "source": "com.example.fitness_app-main-1:/mipmap-xxxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.example.fitness_app-merged_res-8:/drawable-night-xhdpi_android12splash.png.flat",
+        "source": "com.example.fitness_app-main-1:/drawable-night-xhdpi/android12splash.png"
+    },
+    {
+        "merged": "com.example.fitness_app-merged_res-8:/mipmap-xxhdpi_ic_launcher.png.flat",
+        "source": "com.example.fitness_app-main-1:/mipmap-xxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.example.fitness_app-merged_res-8:/drawable-hdpi_android12splash.png.flat",
+        "source": "com.example.fitness_app-main-1:/drawable-hdpi/android12splash.png"
+    },
+    {
+        "merged": "com.example.fitness_app-merged_res-8:/drawable-xxhdpi_android12splash.png.flat",
+        "source": "com.example.fitness_app-main-1:/drawable-xxhdpi/android12splash.png"
+    },
+    {
+        "merged": "com.example.fitness_app-merged_res-8:/mipmap-hdpi_ic_launcher.png.flat",
+        "source": "com.example.fitness_app-main-1:/mipmap-hdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.example.fitness_app-merged_res-8:/drawable-night-xxhdpi_android12splash.png.flat",
+        "source": "com.example.fitness_app-main-1:/drawable-night-xxhdpi/android12splash.png"
+    },
+    {
+        "merged": "com.example.fitness_app-merged_res-8:/mipmap-xhdpi_ic_launcher.png.flat",
+        "source": "com.example.fitness_app-main-1:/mipmap-xhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.example.fitness_app-merged_res-8:/drawable-night-xxxhdpi_android12splash.png.flat",
+        "source": "com.example.fitness_app-main-1:/drawable-night-xxxhdpi/android12splash.png"
+    }
+]
