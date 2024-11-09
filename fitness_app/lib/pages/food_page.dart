@@ -312,7 +312,7 @@ class _FoodPageState extends State<FoodPage> {
                         final caloriesRemaining = foodDatabase.appSettings.dailyIntakeGoal - foodDatabase.appSettings.totalIntake;
                         return Text(
                           caloriesRemaining == 0 
-                            ? 'Done for today' 
+                            ? 'Done for today'
                             : caloriesRemaining.toString(),
                           style: GoogleFonts.dmSerifText(
                             fontSize: 24,

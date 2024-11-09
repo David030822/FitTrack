@@ -7,6 +7,7 @@ part 'app_settings.g.dart';
 class AppSettings {
   Id id = Isar.autoIncrement;
   DateTime? firstLaunchDate;
+  double dailyCaloriesGoal = 0;
   double dailyBurnGoal = 0;
   double dailyIntakeGoal = 0;
   double totalBurnt = 0;

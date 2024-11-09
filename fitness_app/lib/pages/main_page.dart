@@ -207,12 +207,12 @@ class _MainPageState extends State<MainPage> {
                     Padding(
                       padding: const EdgeInsets.only(right: 20.0),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center, // Center the row contents
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Expanded(
                             child: MyTextField(
                               controller: _caloriesController,
-                              hintText: 'Enter daily goal',
+                              hintText: 'Enter daily calories goal',
                               obscureText: false,
                             ),
                           ),
@@ -225,7 +225,7 @@ class _MainPageState extends State<MainPage> {
                                 final double newGoal = double.tryParse(_calories) ?? 0.0;
 
                                 // Save the new goal to the database
-                                Provider.of<FoodDatabase>(context, listen: false).updateCaloriesToBurnGoal(newGoal);
+                                Provider.of<FoodDatabase>(context, listen: false).updateCaloriesGoal(newGoal);
 
                                 _caloriesController.clear(); // Clear the text field
                               });
@@ -239,85 +239,60 @@ class _MainPageState extends State<MainPage> {
                     const SizedBox(height: 15),
 
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Calories to burn today: ',
-                          style: GoogleFonts.dmSerifText(
-                            fontSize: 24,
-                            color: Theme.of(context).colorScheme.inversePrimary,
-                          ),
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Today\'s goal: ',
+                        style: GoogleFonts.dmSerifText(
+                          fontSize: 24,
+                          color: Theme.of(context).colorScheme.inversePrimary,
                         ),
-                        Consumer<FoodDatabase>(
-                          builder: (context, foodDatabase, child) {
-                            final caloriesToBurnGoal = foodDatabase.appSettings.dailyBurnGoal;
-                            return Text(
-                              caloriesToBurnGoal == 0.0 ? 'No goal set' : caloriesToBurnGoal.toString(),
-                              style: GoogleFonts.dmSerifText(
-                                fontSize: 24,
-                                color: Theme.of(context).colorScheme.inversePrimary,
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-
-                    SizedBox(height: 20),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Calories burnt until now: ',
-                          style: GoogleFonts.dmSerifText(
-                            fontSize: 24,
-                            color: Theme.of(context).colorScheme.inversePrimary,
-                          ),
-                        ),
-                        Consumer<FoodDatabase>(
-                          builder: (context, foodDatabase, child) {
-                            final caloriesBurnt = foodDatabase.appSettings.totalBurnt;
-                            return Text(
-                              caloriesBurnt == 0.0 ? 'Zero' : caloriesBurnt.toString(),
-                              style: GoogleFonts.dmSerifText(
-                                fontSize: 24,
-                                color: Theme.of(context).colorScheme.inversePrimary,
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 0),
+                      ),
+                      Consumer<FoodDatabase>(
+                        builder: (context, foodDatabase, child) {
+                          final caloriesGoal = foodDatabase.appSettings.dailyCaloriesGoal;
+                          return Text(
+                            caloriesGoal == 0.0 ? 'No goal set' : caloriesGoal.toString(),
+                            style: GoogleFonts.dmSerifText(
+                              fontSize: 24,
+                              color: Theme.of(context).colorScheme.inversePrimary,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+            
+                  SizedBox(height: 20),
 
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Remaining: ',
-                          style: GoogleFonts.dmSerifText(
-                            fontSize: 24,
-                            color: Theme.of(context).colorScheme.inversePrimary,
-                          ),
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Progress: ',
+                        style: GoogleFonts.dmSerifText(
+                          fontSize: 24,
+                          color: Theme.of(context).colorScheme.inversePrimary,
                         ),
-                        Consumer<FoodDatabase>(
-                          builder: (context, foodDatabase, child) {
-                            final caloriesRemaining = foodDatabase.appSettings.dailyBurnGoal - foodDatabase.appSettings.totalBurnt;
-                            return Text(
-                              caloriesRemaining == 0.0 ? 'Done for today' : caloriesRemaining.toString(),
-                              style: GoogleFonts.dmSerifText(
-                                fontSize: 24,
-                                color: Theme.of(context).colorScheme.inversePrimary,
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 20),
+                      ),
+                      Consumer<FoodDatabase>(
+                        builder: (context, foodDatabase, child) {
+                          final caloriesBurnt = foodDatabase.appSettings.totalBurnt;
+                          final totalIntake = foodDatabase.appSettings.totalIntake;
+                          final remaining = totalIntake - caloriesBurnt;
+                          return Text(
+                            remaining == 0.0 ? 'Done for today' : '$totalIntake - $caloriesBurnt = $remaining',
+                            style: GoogleFonts.dmSerifText(
+                              fontSize: 24,
+                              color: Theme.of(context).colorScheme.inversePrimary,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+            
+                  const SizedBox(height: 20),
 
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,

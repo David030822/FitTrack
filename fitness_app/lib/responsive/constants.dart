@@ -13,16 +13,23 @@ var myDrawer = const MyDrawer();
 
 const List<String> workoutCategories = <String>[
   'Running', 'Cycling', 'Walking',
-  'Hiking', 'Swimming', 'Yoga',
+  'Hiking', 'Swimming', 'Yoga', 'Gym',
   ];
 
 List<Workout> workouts = [
   Workout(
     category: 'Cycling',
     distance: 13.6,
-    calories: 500,
+    calories: 200,
     startDate: DateTime(2024, 8, 31, 7, 30),  // August 31, 2024, 7:30 AM
     endDate: DateTime(2024, 8, 31, 8, 15),    // August 31, 2024, 8:15 AM
+  ),
+  Workout(
+    category: 'Gym',
+    distance: 0.0,
+    calories: 300,
+    startDate: DateTime(2024, 8, 31, 14, 30),  // August 31, 2024, 2:30 PM
+    endDate: DateTime(2024, 8, 31, 16, 15),    // August 31, 2024, 4:15 PM
   ),
   Workout(
     category: 'Running',
