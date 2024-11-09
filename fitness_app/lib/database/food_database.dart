@@ -49,6 +49,16 @@ class FoodDatabase extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Update the daily calories goal
+  Future<void> updateCaloriesGoal(double newGoal) async {
+    appSettings.dailyCaloriesGoal = newGoal;
+    await isar.writeTxn(() async {
+      await isar.appSettings.put(appSettings);
+    });
+    notifyListeners();
+  }
+
+  // update calories to burn goal
   Future<void> updateCaloriesToBurnGoal(double newGoal) async {
     appSettings.dailyBurnGoal = newGoal;
     await isar.writeTxn(() async {
@@ -56,7 +66,6 @@ class FoodDatabase extends ChangeNotifier {
     });
     notifyListeners();
   }
-
 
   // Update the daily goal
   Future<void> updateDailyGoal(double newGoal) async {
@@ -76,12 +85,19 @@ class FoodDatabase extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Update the total intake
+  // Update the total calories burnt
   Future<void> updateTotalCaloriesBurnt() async {
-    appSettings.totalBurnt = workouts.fold(0, (sum, workout) => sum + workout.calories);
+    final workoutsToday = workouts.where((workout) =>
+      workout.endDate == DateTime(2024, 8, 31, 8, 15) ||
+      workout.endDate == DateTime(2024, 8, 31, 16, 15)
+    );
+
+    appSettings.totalBurnt = workoutsToday.fold(0, (sum, workout) => sum + workout.calories);
+
     await isar.writeTxn(() async {
       await isar.appSettings.put(appSettings);
     });
+    
     notifyListeners();
   }
 

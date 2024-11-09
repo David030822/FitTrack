@@ -31,7 +31,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: 5,
+              itemCount: 6,
               scrollDirection: Axis.vertical,
               itemBuilder: (context, index) {
                 // get workout from workout list/db

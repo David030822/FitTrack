@@ -54,8 +54,6 @@ class UserData extends ChangeNotifier{
           userId = response.userData["UserID"];
           firstName = response.userData["firstName"];
           lastName = response.userData["lastName"];
-
-          
         } else {
           false;
         }
@@ -65,6 +63,4 @@ class UserData extends ChangeNotifier{
       return false;
     }
   }
-
-
 }

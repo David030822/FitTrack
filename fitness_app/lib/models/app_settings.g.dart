@@ -22,23 +22,28 @@ const AppSettingsSchema = CollectionSchema(
       name: r'dailyBurnGoal',
       type: IsarType.double,
     ),
-    r'dailyIntakeGoal': PropertySchema(
+    r'dailyCaloriesGoal': PropertySchema(
       id: 1,
+      name: r'dailyCaloriesGoal',
+      type: IsarType.double,
+    ),
+    r'dailyIntakeGoal': PropertySchema(
+      id: 2,
       name: r'dailyIntakeGoal',
       type: IsarType.double,
     ),
     r'firstLaunchDate': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'firstLaunchDate',
       type: IsarType.dateTime,
     ),
     r'totalBurnt': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'totalBurnt',
       type: IsarType.double,
     ),
     r'totalIntake': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'totalIntake',
       type: IsarType.double,
     )
@@ -73,10 +78,11 @@ void _appSettingsSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeDouble(offsets[0], object.dailyBurnGoal);
-  writer.writeDouble(offsets[1], object.dailyIntakeGoal);
-  writer.writeDateTime(offsets[2], object.firstLaunchDate);
-  writer.writeDouble(offsets[3], object.totalBurnt);
-  writer.writeDouble(offsets[4], object.totalIntake);
+  writer.writeDouble(offsets[1], object.dailyCaloriesGoal);
+  writer.writeDouble(offsets[2], object.dailyIntakeGoal);
+  writer.writeDateTime(offsets[3], object.firstLaunchDate);
+  writer.writeDouble(offsets[4], object.totalBurnt);
+  writer.writeDouble(offsets[5], object.totalIntake);
 }
 
 AppSettings _appSettingsDeserialize(
@@ -87,11 +93,12 @@ AppSettings _appSettingsDeserialize(
 ) {
   final object = AppSettings();
   object.dailyBurnGoal = reader.readDouble(offsets[0]);
-  object.dailyIntakeGoal = reader.readDouble(offsets[1]);
-  object.firstLaunchDate = reader.readDateTimeOrNull(offsets[2]);
+  object.dailyCaloriesGoal = reader.readDouble(offsets[1]);
+  object.dailyIntakeGoal = reader.readDouble(offsets[2]);
+  object.firstLaunchDate = reader.readDateTimeOrNull(offsets[3]);
   object.id = id;
-  object.totalBurnt = reader.readDouble(offsets[3]);
-  object.totalIntake = reader.readDouble(offsets[4]);
+  object.totalBurnt = reader.readDouble(offsets[4]);
+  object.totalIntake = reader.readDouble(offsets[5]);
   return object;
 }
 
@@ -107,10 +114,12 @@ P _appSettingsDeserializeProp<P>(
     case 1:
       return (reader.readDouble(offset)) as P;
     case 2:
-      return (reader.readDateTimeOrNull(offset)) as P;
-    case 3:
       return (reader.readDouble(offset)) as P;
+    case 3:
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 4:
+      return (reader.readDouble(offset)) as P;
+    case 5:
       return (reader.readDouble(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -267,6 +276,72 @@ extension AppSettingsQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'dailyBurnGoal',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
+      dailyCaloriesGoalEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'dailyCaloriesGoal',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
+      dailyCaloriesGoalGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'dailyCaloriesGoal',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
+      dailyCaloriesGoalLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'dailyCaloriesGoal',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettings, AppSettings, QAfterFilterCondition>
+      dailyCaloriesGoalBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'dailyCaloriesGoal',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -623,6 +698,20 @@ extension AppSettingsQuerySortBy
     });
   }
 
+  QueryBuilder<AppSettings, AppSettings, QAfterSortBy>
+      sortByDailyCaloriesGoal() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dailyCaloriesGoal', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AppSettings, AppSettings, QAfterSortBy>
+      sortByDailyCaloriesGoalDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dailyCaloriesGoal', Sort.desc);
+    });
+  }
+
   QueryBuilder<AppSettings, AppSettings, QAfterSortBy> sortByDailyIntakeGoal() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'dailyIntakeGoal', Sort.asc);
@@ -686,6 +775,20 @@ extension AppSettingsQuerySortThenBy
       thenByDailyBurnGoalDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'dailyBurnGoal', Sort.desc);
+    });
+  }
+
+  QueryBuilder<AppSettings, AppSettings, QAfterSortBy>
+      thenByDailyCaloriesGoal() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dailyCaloriesGoal', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AppSettings, AppSettings, QAfterSortBy>
+      thenByDailyCaloriesGoalDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dailyCaloriesGoal', Sort.desc);
     });
   }
 
@@ -761,6 +864,13 @@ extension AppSettingsQueryWhereDistinct
   }
 
   QueryBuilder<AppSettings, AppSettings, QDistinct>
+      distinctByDailyCaloriesGoal() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'dailyCaloriesGoal');
+    });
+  }
+
+  QueryBuilder<AppSettings, AppSettings, QDistinct>
       distinctByDailyIntakeGoal() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'dailyIntakeGoal');
@@ -798,6 +908,13 @@ extension AppSettingsQueryProperty
   QueryBuilder<AppSettings, double, QQueryOperations> dailyBurnGoalProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'dailyBurnGoal');
+    });
+  }
+
+  QueryBuilder<AppSettings, double, QQueryOperations>
+      dailyCaloriesGoalProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'dailyCaloriesGoal');
     });
   }
 
