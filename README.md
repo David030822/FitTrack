@@ -1,6 +1,6 @@
 # Allamvizsga-2025
 
-Projekt téma: fitness alkalmazás
+Projekt téma: FitTrack - fitness alkalmazás
 
 Fontosabb funkcionalitások:
   - új felhasználó regisztrálása/bejelentkezés
@@ -15,6 +15,7 @@ Fontosabb funkcionalitások:
   - ismerősök/más felhasználók követése
   - napi bevitt kalóriák követése (étkezések elmentése)
   - chatbot: edzéstervek és diéták ajánlása
+  - edzés rutin kialakítása, felhasználó emlékeztetése
 
 Használt technológiák:
   - Frontend:
