@@ -54,6 +54,7 @@ dependencies:
   firebase_messaging: ^14.7.10
   stop_watch_timer: ^3.2.1
   intl:
+  image_picker: ^0.8.5+3
 
 dev_dependencies:
   flutter_test:

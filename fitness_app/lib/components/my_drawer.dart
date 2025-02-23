@@ -7,6 +7,7 @@ import 'package:fitness_app/pages/home_page.dart';
 import 'package:fitness_app/pages/login_page.dart';
 import 'package:fitness_app/pages/profile_page.dart';
 import 'package:fitness_app/pages/settings_page.dart';
+import 'package:fitness_app/responsive/constants.dart';
 import 'package:flutter/material.dart';
 
 class MyDrawer extends StatelessWidget {
@@ -52,7 +53,7 @@ class MyDrawer extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ProfilePage(),
+                        builder: (context) => ProfilePage(user: users[0]),
                       ),
                     );
                   } 

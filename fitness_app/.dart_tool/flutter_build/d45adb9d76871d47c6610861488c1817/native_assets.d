@@ -1,1 +1,0 @@
- C:\\Cuccok\\Sapietia\\Info\\Allamvizsga\\Allamvizsga-2025\\fitness_app\\.dart_tool\\flutter_build\\d45adb9d76871d47c6610861488c1817\\native_assets.yaml: 

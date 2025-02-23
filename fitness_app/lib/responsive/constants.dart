@@ -1,5 +1,5 @@
 import 'package:fitness_app/components/my_drawer.dart';
-import 'package:fitness_app/models/friend.dart';
+import 'package:fitness_app/models/user.dart';
 import 'package:fitness_app/models/workout.dart';
 import 'package:flutter/material.dart';
 
@@ -65,29 +65,51 @@ List<Workout> getWorkoutList() {
   return workouts;
 }
 
-List<Friend> friends = [
-  Friend(
-    name: 'Mitch',
-    email: 'mitchkoko22@gmail.com'
+List<User> users = [
+  User(
+    firstName: 'David',
+    lastName: 'Demeter',
+    email: 'demeter.david@gmail.com',
+    phoneNum: '0745805425',
+    profileImagePath: 'assets/images/DavidBysCars.png'
   ),
-  Friend(
-    name: 'Sarah',
-    email: 'sarahjones98@yahoo.com'
+  User(
+  firstName: 'Emma',
+  lastName: 'Johnson',
+  email: 'emma.johnson@gmail.com',
+  phoneNum: '0765481234',
+  profileImagePath: '',
   ),
-  Friend(
-    name: 'David',
-    email: 'davidbrown23@hotmail.com'
+  User(
+    firstName: 'Liam',
+    lastName: 'Smith',
+    email: 'liam.smith@gmail.com',
+    phoneNum: '0754123467',
+    profileImagePath: '',
   ),
-  Friend(
-    name: 'Emily',
-    email: 'emilysmith11@gmail.com'
+  User(
+    firstName: 'Sophia',
+    lastName: 'Brown',
+    email: 'sophia.brown@gmail.com',
+    phoneNum: '0773219876',
+    profileImagePath: '',
   ),
-  Friend(
-    name: 'Alex',
-    email: 'alexjohnson77@outlook.com'
+  User(
+    firstName: 'Noah',
+    lastName: 'Davis',
+    email: 'noah.davis@gmail.com',
+    phoneNum: '0723456789',
+    profileImagePath: '',
+  ),
+  User(
+    firstName: 'Ava',
+    lastName: 'Taylor',
+    email: 'ava.taylor@gmail.com',
+    phoneNum: '0734567890',
+    profileImagePath: '',
   ),
 ];
 
-List<Friend> getFriendList() {
-  return friends;
+List<User> getUserList(){
+  return users;
 }

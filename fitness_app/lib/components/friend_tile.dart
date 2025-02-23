@@ -1,9 +1,10 @@
-import 'package:fitness_app/models/friend.dart';
+import 'package:fitness_app/models/user.dart';
+import 'package:fitness_app/pages/friend_page.dart';
 import 'package:flutter/material.dart';
 
 // ignore: must_be_immutable
 class FriendTile extends StatelessWidget {
-  Friend friend;
+  User friend;
 
   FriendTile({
     super.key,
@@ -12,10 +13,21 @@ class FriendTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: const Icon(Icons.person),
-      title: Text(friend.name),
-      subtitle: Text(friend.email),
+    return GestureDetector(
+      onTap: () {
+        // Navigator.pop(context);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => FriendPage(user: friend),
+            ),
+          );
+      },
+      child: ListTile(
+        leading: const Icon(Icons.person),
+        title: Text(friend.firstName + ' ' + friend.lastName),
+        subtitle: Text(friend.email),
+      ),
     );
   }
 }
