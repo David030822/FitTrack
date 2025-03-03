@@ -10,13 +10,13 @@ public class UserController : ControllerBase{
     private static List<User> users = new List<User>();
 
     [HttpGet]
-    // [Route("users")]
+    [Route("users")]
     public ActionResult<IEnumerable<User>> Get(){
         return Ok(users);
     }
 
     [HttpPost]
-    // [Route("users")]
+    [Route("users")]
     public ActionResult<User> Post(User user){
         if (user == null){
             return BadRequest();
@@ -27,7 +27,7 @@ public class UserController : ControllerBase{
     }
 
     [HttpPut]
-    // [Route("users/{id}")]    
+    [Route("users/{id}")]    
     public ActionResult<User> Put(int id, User user){
         if (user == null){
             return BadRequest();
@@ -48,7 +48,7 @@ public class UserController : ControllerBase{
     }
 
     [HttpDelete]
-    // [Route("users/{id}")]    
+    [Route("users/{id}")]    
     public ActionResult<User> Delete(int id){
         var existingUser = users.Find(u => u.Id == id);
         if (existingUser == null){

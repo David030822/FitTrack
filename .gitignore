@@ -9,9 +9,9 @@
 *.class
 
 # Generated files
-bin/
-gen/
-out/
+/bin/
+/gen/
+/out/
 
 # Gradle files
 .gradle/
@@ -248,3 +248,14 @@ GoogleService-Info.plist
 google-services.json
 # Plugins (already resolved through pubspec.yaml)
 .flutter-plugins
+
+# Ignore NuGet packages
+*.nupkg
+project.nuget.cache
+project.assets.json
+
+# Ignore build outputs
+obj/
+bin/
+*.cache
+*.csproj.nuget.*
