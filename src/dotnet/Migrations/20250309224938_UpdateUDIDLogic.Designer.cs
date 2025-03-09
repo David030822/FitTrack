@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using dotnet.Data;
@@ -11,9 +12,11 @@ using dotnet.Data;
 namespace dotnet.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250309224938_UpdateUDIDLogic")]
+    partial class UpdateUDIDLogic
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -252,6 +255,9 @@ namespace dotnet.Migrations
 
                     b.HasIndex("ParentID");
 
+                    b.HasIndex("UDID")
+                        .IsUnique();
+
                     b.ToTable("Users");
                 });
 
@@ -480,6 +486,13 @@ namespace dotnet.Migrations
                         .HasForeignKey("ParentID")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("dotnet.DAL.AppDevicesDAL", "AppDevices")
+                        .WithOne("User")
+                        .HasForeignKey("dotnet.DAL.UserDAL", "UDID")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("AppDevices");
+
                     b.Navigation("Parent");
                 });
 
@@ -527,6 +540,12 @@ namespace dotnet.Migrations
                     b.Navigation("User");
 
                     b.Navigation("WorkoutCalories");
+                });
+
+            modelBuilder.Entity("dotnet.DAL.AppDevicesDAL", b =>
+                {
+                    b.Navigation("User")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("dotnet.DAL.CaloriesDAL", b =>

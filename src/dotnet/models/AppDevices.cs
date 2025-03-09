@@ -6,6 +6,5 @@ namespace dotnet.Models
         public DateTime Registered { get; set; }
         public double Used { get; set; }
         public DateTime LastUsed { get; set; }
-        public User User { get; set; }
     }
 }

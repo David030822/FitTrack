@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using dotnet.Data;
@@ -11,9 +12,11 @@ using dotnet.Data;
 namespace dotnet.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250309220228_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -92,19 +95,6 @@ namespace dotnet.Migrations
                     b.HasIndex("FollowerID");
 
                     b.ToTable("Following");
-                });
-
-            modelBuilder.Entity("dotnet.DAL.GoalCheckedDAL", b =>
-                {
-                    b.Property<int>("GoalID")
-                        .HasColumnType("integer");
-
-                    b.Property<DateOnly>("Date")
-                        .HasColumnType("date");
-
-                    b.HasKey("GoalID");
-
-                    b.ToTable("GoalChecked");
                 });
 
             modelBuilder.Entity("dotnet.DAL.GoalDAL", b =>
@@ -245,12 +235,15 @@ namespace dotnet.Migrations
                     b.Property<string>("ProfilePhotoPath")
                         .HasColumnType("text");
 
-                    b.Property<int?>("UDID")
+                    b.Property<int>("UDID")
                         .HasColumnType("integer");
 
                     b.HasKey("UserID");
 
                     b.HasIndex("ParentID");
+
+                    b.HasIndex("UDID")
+                        .IsUnique();
 
                     b.ToTable("Users");
                 });
@@ -355,6 +348,47 @@ namespace dotnet.Migrations
                     b.ToTable("AppLogs");
                 });
 
+            modelBuilder.Entity("dotnet.Models.Goal", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Goal");
+                });
+
+            modelBuilder.Entity("dotnet.Models.GoalChecked", b =>
+                {
+                    b.Property<int>("GoalID")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("GoalDALGoalID")
+                        .HasColumnType("integer");
+
+                    b.HasKey("GoalID");
+
+                    b.HasIndex("GoalDALGoalID");
+
+                    b.ToTable("GoalChecked");
+                });
+
             modelBuilder.Entity("dotnet.Models.Levels", b =>
                 {
                     b.Property<int>("Id")
@@ -400,17 +434,6 @@ namespace dotnet.Migrations
                     b.Navigation("Followed");
 
                     b.Navigation("Follower");
-                });
-
-            modelBuilder.Entity("dotnet.DAL.GoalCheckedDAL", b =>
-                {
-                    b.HasOne("dotnet.DAL.GoalDAL", "Goal")
-                        .WithMany("GoalChecked")
-                        .HasForeignKey("GoalID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Goal");
                 });
 
             modelBuilder.Entity("dotnet.DAL.GoalDAL", b =>
@@ -480,6 +503,14 @@ namespace dotnet.Migrations
                         .HasForeignKey("ParentID")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("dotnet.DAL.AppDevicesDAL", "AppDevices")
+                        .WithOne("User")
+                        .HasForeignKey("dotnet.DAL.UserDAL", "UDID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AppDevices");
+
                     b.Navigation("Parent");
                 });
 
@@ -529,6 +560,27 @@ namespace dotnet.Migrations
                     b.Navigation("WorkoutCalories");
                 });
 
+            modelBuilder.Entity("dotnet.Models.GoalChecked", b =>
+                {
+                    b.HasOne("dotnet.DAL.GoalDAL", null)
+                        .WithMany("GoalChecked")
+                        .HasForeignKey("GoalDALGoalID");
+
+                    b.HasOne("dotnet.Models.Goal", "Goal")
+                        .WithMany("GoalChecked")
+                        .HasForeignKey("GoalID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Goal");
+                });
+
+            modelBuilder.Entity("dotnet.DAL.AppDevicesDAL", b =>
+                {
+                    b.Navigation("User")
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("dotnet.DAL.CaloriesDAL", b =>
                 {
                     b.Navigation("Meal")
@@ -563,6 +615,11 @@ namespace dotnet.Migrations
             modelBuilder.Entity("dotnet.DAL.WorkoutCategoryDAL", b =>
                 {
                     b.Navigation("Workouts");
+                });
+
+            modelBuilder.Entity("dotnet.Models.Goal", b =>
+                {
+                    b.Navigation("GoalChecked");
                 });
 
             modelBuilder.Entity("dotnet.Models.Levels", b =>

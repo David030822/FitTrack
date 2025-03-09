@@ -6,6 +6,5 @@ namespace dotnet.Models
         public int StepsCount { get; set; }
         public DateTime Date { get; set; }
         public int CaloriesId { get; set; }
-        public Calories Calories { get; set; }
     }
 }
