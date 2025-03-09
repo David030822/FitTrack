@@ -1,7 +1,15 @@
 using dotnet.Data;
 using Microsoft.EntityFrameworkCore;
+using dotnet.Repositories;
+using dotnet.Services;
+using dotnet.Services.Interfaces;
+using dotnet.Repositories.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the DI container
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("postgreDb")));
