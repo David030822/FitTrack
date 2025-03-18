@@ -6,8 +6,8 @@ import 'package:fitness_app/components/square_tile.dart';
 import 'package:fitness_app/pages/home_page.dart';
 import 'package:flutter/material.dart';
 
-class ApplePage extends StatelessWidget {
-  ApplePage({super.key});
+class FacebookPage extends StatelessWidget {
+  FacebookPage({super.key});
 
   // text editing controller
   final emailController = TextEditingController();
@@ -19,6 +19,10 @@ class ApplePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+      ),
       body: SafeArea(
         child: Center(
           child: Column(
@@ -26,9 +30,9 @@ class ApplePage extends StatelessWidget {
             children: [
               SizedBox(height: 50),
           
-              // apple logo
+              // facebook logo
               SquareTile(
-                imagePath: 'assets/images/apple.png',
+                imagePath: 'assets/images/facebook.png',
                 height: 100
               ),
           

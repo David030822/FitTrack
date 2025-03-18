@@ -23,10 +23,20 @@ namespace dotnet.DAL
         [EmailAddress]
         [MaxLength(100)]
         public string Email { get; set; }
+        [MaxLength(15)]
+        public string? PhoneNum { get; set; }
+
+        [Required]
+        [MaxLength(50)]
+        public string Username { get; set; }
 
         [Required]
         [MaxLength(255)]  // Store hashed passwords, so we allocate enough space
-        public string Password { get; set; }
+        public byte[] PasswordHash { get; set; }
+
+        [Required]
+        [MaxLength(255)]
+        public byte[] PasswordSalt { get; set; }
 
         public string? ProfilePhotoPath { get; set; }  // Optional profile photo
 

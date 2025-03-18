@@ -12,5 +12,6 @@ namespace dotnet.Services.Interfaces
         Task CreateUserAsync(User user);
         Task UpdateUserAsync(int id, User user);
         Task DeleteUserAsync(int id);
+        public Task<string> UploadProfileImageAsync(IFormFile file, int userId);
     }
 }
