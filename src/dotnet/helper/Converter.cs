@@ -16,7 +16,10 @@ namespace dotnet.Helper
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
-                Password = user.Password,  // Hashing should be handled separately
+                PhoneNum = user.PhoneNum,
+                Username = user.Username,
+                PasswordHash = user.PasswordHash,
+                PasswordSalt = user.PasswordSalt,
                 ProfilePhotoPath = user.ProfilePhotoPath
             };
         }
@@ -31,7 +34,10 @@ namespace dotnet.Helper
                 FirstName = userDAL.FirstName,
                 LastName = userDAL.LastName,
                 Email = userDAL.Email,
-                Password = userDAL.Password,
+                PhoneNum = userDAL.PhoneNum,
+                Username = userDAL.Username,
+                PasswordHash = userDAL.PasswordHash,
+                PasswordSalt = userDAL.PasswordSalt,
                 ProfilePhotoPath = userDAL.ProfilePhotoPath
             };
         }
@@ -44,7 +50,8 @@ namespace dotnet.Helper
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
-                Password = user.Password,
+                PhoneNum = user.PhoneNum,
+                Username = user.Username,
                 ProfilePhotoPath = user.ProfilePhotoPath
             };
         }
@@ -59,7 +66,8 @@ namespace dotnet.Helper
                 FirstName = userDTO.FirstName,
                 LastName = userDTO.LastName,
                 Email = userDTO.Email,
-                Password = userDTO.Password,
+                PhoneNum = userDTO.PhoneNum,
+                Username = userDTO.Username,
                 ProfilePhotoPath = userDTO.ProfilePhotoPath
             };
         }

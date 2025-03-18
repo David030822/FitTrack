@@ -40,8 +40,8 @@ class _FriendPageState extends State<FriendPage> {
           
           CircleAvatar(
             radius: 80,
-            backgroundImage: _getImageProvider(widget.user.profileImagePath),
-            child: _getImageProvider(widget.user.profileImagePath) == null
+            backgroundImage: _getImageProvider(widget.user.profileImagePath!),
+            child: _getImageProvider(widget.user.profileImagePath!) == null
                 ? Icon(
                     Icons.person,
                     size: 80,
@@ -53,7 +53,7 @@ class _FriendPageState extends State<FriendPage> {
           const SizedBox(height: 10),
           itemProfile('Name', '${widget.user.firstName} ${widget.user.lastName}' , CupertinoIcons.person),
           const SizedBox(height: 10),
-          itemProfile('Phone', widget.user.phoneNum, CupertinoIcons.phone),
+          itemProfile('Phone', widget.user.phoneNum!, CupertinoIcons.phone),
           const SizedBox(height: 10),
           itemProfile('Email', widget.user.email, CupertinoIcons.mail),
           const SizedBox(height: 10),

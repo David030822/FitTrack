@@ -9,9 +9,25 @@ import 'package:fitness_app/pages/profile_page.dart';
 import 'package:fitness_app/pages/settings_page.dart';
 import 'package:fitness_app/responsive/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class MyDrawer extends StatelessWidget {
+class MyDrawer extends StatefulWidget {
   const MyDrawer({super.key});
+
+  @override
+  State<MyDrawer> createState() => _MyDrawerState();
+}
+
+class _MyDrawerState extends State<MyDrawer> {
+
+  void logout(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token'); // Remove the stored token
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => LoginPage()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,13 +127,7 @@ class MyDrawer extends StatelessWidget {
               title: 'L O G O U T',
               leading: const Icon(Icons.logout),
               onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => LoginPage()
-                  ),
-                );
+                logout(context);
               },
             ),
           ],

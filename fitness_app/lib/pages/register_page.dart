@@ -4,6 +4,8 @@ import 'package:fitness_app/components/my_button.dart';
 import 'package:fitness_app/components/my_text_field.dart';
 import 'package:fitness_app/pages/home_page.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -21,11 +23,86 @@ class _RegisterPageState extends State<RegisterPage> {
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
+  void showError(String message) {
+    print("❌ showError() called: $message");
+    ScaffoldMessenger.of(Navigator.of(context).overlay!.context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
+  void showSuccess(String message) {
+    print("✅ showSuccess() called: $message");
+    ScaffoldMessenger.of(Navigator.of(context).overlay!.context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.green),
+    );
+  }
+
+  Future<void> registerUser() async {
+    const String apiUrl = "http://192.168.0.142:5082/api/users/register";  // PC IP1
+    // const String apiUrl = "http://192.168.0.226:5082/api/users/register";   // PC IP2
+    // const String apiUrl = "http://10.0.0.2:5082/api/users/register";
+
+    if (passwordController.text != confirmPasswordController.text) {
+      showError("Passwords do not match!");
+      return;
+    }
+
+    Map<String, dynamic> userData = {
+      "firstName": firstNameController.text,
+      "lastName": lastNameController.text,
+      "email": emailController.text,
+      "username": usernameController.text,
+      "password": passwordController.text,
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(userData),
+      );
+
+      print("📢 Response Status Code: ${response.statusCode}");
+      print("📢 Response Body: ${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print("✅ SUCCESS: User registered!");
+
+        if (jsonDecode(response.body)["message"] == "Registration successful") {
+          showSuccess("User registered successfully!");  // ✅ Show GREEN SnackBar
+        }
+
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomePage()),
+          );
+        }
+      } else {
+        try {
+          var responseBody = jsonDecode(response.body);
+          print("❌ ERROR: ${responseBody["message"]}");
+          showError(responseBody["message"] ?? "Registration failed");
+        } catch (e) {
+          print("❌ ERROR decoding response: $e");
+          showError("Unexpected response from server.");
+        }
+      }
+    } catch (error) {
+      print("❌ NETWORK ERROR: $error");
+      showError("Something went wrong: $error");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       resizeToAvoidBottomInset: true,  // This helps in automatically resizing the body to avoid the keyboard
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+      ),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -117,15 +194,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       // register now button
                       MyButton(
                         text: 'Register Now',
-                        onTap: () {
-                          Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => HomePage(),
-                            ),
-                          );
-                        },
+                        onTap: () => registerUser(),
                       ),
                     ],
                   ),
