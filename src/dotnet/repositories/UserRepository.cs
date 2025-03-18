@@ -47,7 +47,6 @@ namespace dotnet.Repositories
             existingUserDAL.FirstName = updatedUser.FirstName;
             existingUserDAL.LastName = updatedUser.LastName;
             existingUserDAL.Email = updatedUser.Email;
-            existingUserDAL.Password = updatedUser.Password;
             existingUserDAL.ProfilePhotoPath = updatedUser.ProfilePhotoPath;
 
             _context.Users.Update(existingUserDAL);
@@ -62,6 +61,16 @@ namespace dotnet.Repositories
 
             _context.Users.Remove(userDAL);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> UserExists(string email)
+        {
+            return await _context.Users.AnyAsync(u => u.Email == email);
+        }
+
+        public async Task<UserDAL> GetUserByEmail(string email)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
     }
 }

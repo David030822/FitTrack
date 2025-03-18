@@ -237,16 +237,30 @@ namespace dotnet.Migrations
                     b.Property<int?>("ParentID")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Password")
+                    b.Property<byte[]>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("bytea");
+
+                    b.Property<byte[]>("PasswordSalt")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("bytea");
+
+                    b.Property<string>("PhoneNum")
+                        .HasMaxLength(15)
+                        .HasColumnType("character varying(15)");
 
                     b.Property<string>("ProfilePhotoPath")
                         .HasColumnType("text");
 
                     b.Property<int?>("UDID")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.HasKey("UserID");
 
