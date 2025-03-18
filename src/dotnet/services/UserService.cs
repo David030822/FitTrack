@@ -42,7 +42,6 @@ namespace dotnet.Services
             };
         }
 
-
         public async Task CreateUserAsync(User user)
         {
             await _userRepository.CreateUserAsync(user);
@@ -56,6 +55,36 @@ namespace dotnet.Services
         public async Task DeleteUserAsync(int id)
         {
             await _userRepository.DeleteUserAsync(id);
+        }
+
+        public async Task<string> UploadProfileImageAsync(IFormFile file, int userId)
+        {
+            if (file == null || file.Length == 0)
+            {
+                throw new ArgumentException("No file uploaded.");
+            }
+
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
+            Directory.CreateDirectory(uploadsFolder); // Ensure directory exists
+
+            var fileName = $"{userId}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                throw new KeyNotFoundException("User not found");
+            }
+
+            user.ProfilePhotoPath = $"/uploads/{fileName}";
+            await _userRepository.UpdateUserAsync(userId, user);
+
+            return user.ProfilePhotoPath;
         }
     }
 }

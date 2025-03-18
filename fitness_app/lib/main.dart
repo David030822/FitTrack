@@ -6,6 +6,8 @@ import 'package:fitness_app/database/food_database.dart';
 import 'package:fitness_app/database/goal_database.dart';
 import 'package:fitness_app/firebase_options.dart';
 import 'package:fitness_app/network/apiclient.dart';
+import 'package:fitness_app/pages/auth_page.dart';
+import 'package:fitness_app/pages/home_page.dart';
 import 'package:fitness_app/pages/login_page.dart';
 import 'package:fitness_app/pages/notification_page.dart';
 import 'package:fitness_app/pages/training_page.dart';
@@ -73,7 +75,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: Provider.of<ThemeProvider>(context).themeData,
       home: ResponsiveLayout(
-        mobileScaffold: /*const MobileScaffold(),*/ const LoginPage(),
+        mobileScaffold: /*const MobileScaffold(),*/ /*const AuthPage()*/const LoginPage(),
         tabletScaffold: const TabletScaffold(),
         desktopScaffold: const DesktopScaffold(),
       ),
@@ -81,6 +83,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/training_page': (context) => const TrainingPage(),
         '/noti_screen': (context) => const NotificationPage(),
+        '/home': (context) => const HomePage(),
       },
     );
   }
