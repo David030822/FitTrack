@@ -59,6 +59,7 @@ namespace dotnet.Controllers
                 user.FirstName,
                 user.LastName,
                 user.Email,
+                user.Username,
                 user.PhoneNum,
                 user.ProfilePhotoPath
             });
@@ -88,13 +89,18 @@ namespace dotnet.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(int id, UserDTO userDTO)
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] UserUpdateDTO updateDto)
         {
-            var existingUser = await _userService.GetUserByIdAsync(id);
-            if (existingUser == null) return NotFound();
+            var user = await _userService.GetUserByIdAsync(id);
+            if (user == null) return NotFound();
 
-            var updatedUser = UserConverter.FromUserDTOToUser(userDTO, id);
-            await _userService.UpdateUserAsync(id, updatedUser);
+            user.FirstName = updateDto.FirstName ?? user.FirstName;
+            user.LastName = updateDto.LastName ?? user.LastName;
+            user.Username = updateDto.Username ?? user.Username;
+            user.PhoneNum = updateDto.PhoneNum ?? user.PhoneNum;
+            user.ProfilePhotoPath = updateDto.ProfileImagePath ?? user.ProfilePhotoPath;
+
+            await _userService.UpdateUserAsync(id, UserConverter.FromUserDTOToUser(user));
             return NoContent();
         }
 

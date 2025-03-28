@@ -11,7 +11,7 @@ import 'package:fitness_app/pages/forgot_password_page.dart';
 import 'package:fitness_app/pages/google_page.dart';
 import 'package:fitness_app/pages/home_page.dart';
 import 'package:fitness_app/pages/register_page.dart';
-import 'package:fitness_app/services/auth_service.dart';
+import 'package:fitness_app/responsive/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -70,8 +70,8 @@ class _LoginPageState extends State<LoginPage> {
       }
     );
 
-    final url = Uri.parse("http://192.168.0.142:5082/api/users/login");  // 1
-    // final url = Uri.parse("http://192.168.0.226:5082/api/users/login");   // 2
+    final url = Uri.parse("$BASE_URL/api/users/login");  // 1
+    // final url = Uri.parse("$BASE_URL/api/users/login");   // 2
 
     final response = await http.post(
       url,
@@ -83,7 +83,7 @@ class _LoginPageState extends State<LoginPage> {
     );
 
     if (response.statusCode == 200) {
-      print("Login successful!");
+      print("✅Login successful!");
 
       final responseData = jsonDecode(response.body);
       String token = responseData["token"]; // Assuming the backend returns a token
@@ -104,8 +104,8 @@ class _LoginPageState extends State<LoginPage> {
         }
       });
     } else {
-      print("Login failed: ${response.body}");
-      showError("Login failed! Check credentials.");
+      print("❌Login failed: ${response.body}");
+      showError("Login failed! ${response.body}");
     }
 
     // pop loading circle

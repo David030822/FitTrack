@@ -16,8 +16,20 @@ class AuthService {
       if (parts.length != 3) return null;
 
       final payload = jsonDecode(utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))));
-      return payload['userId']; // Ensure backend includes `userId` in JWT payload
+
+      // Ensure the extracted ID is an int
+      final userId = payload['id'];
+      debugPrint("Decoded userId type: ${payload['id'].runtimeType}");
+
+      if (userId is int) {
+        return userId;
+      } else if (userId is String) {
+        return int.tryParse(userId); // Convert if it's a string
+      } else {
+        return null; // Invalid type
+      }
     } catch (e) {
+      debugPrint("Error decoding token: $e");
       return null;
     }
   }

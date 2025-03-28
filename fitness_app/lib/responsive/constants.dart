@@ -3,6 +3,9 @@ import 'package:fitness_app/models/user.dart';
 import 'package:fitness_app/models/workout.dart';
 import 'package:flutter/material.dart';
 
+const String BASE_URL = 'http://192.168.0.142:5082';   // 1
+// const String BASE_URL = 'http://192.168.0.226:5082';   // 2
+
 var myDefaultBackgroundColor = Colors.grey[300];
 
 var myAppBar = AppBar(
