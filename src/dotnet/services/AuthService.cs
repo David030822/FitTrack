@@ -34,6 +34,7 @@ public class AuthService : IAuthService
             FirstName = userDto.FirstName,
             LastName = userDto.LastName,
             Email = userDto.Email,
+            PhoneNum = userDto.PhoneNum ?? "Not set",
             Username = userDto.Username,
             PasswordHash = passwordHash,
             PasswordSalt = passwordSalt

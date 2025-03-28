@@ -24,7 +24,10 @@ namespace dotnet.Services
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,
-                Email = user.Email
+                Email = user.Email,
+                PhoneNum = user.PhoneNum,   // 👈 DON'T FORGET THIS
+                Username = user.Username,   // 👈 THIS TOO
+                ProfilePhotoPath = user.ProfilePhotoPath  // 👈 AND THIS
             });
         }
 
@@ -38,7 +41,10 @@ namespace dotnet.Services
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,
-                Email = user.Email
+                Email = user.Email,
+                PhoneNum = user.PhoneNum,   // 👈 DON'T FORGET THIS
+                Username = user.Username,   // 👈 THIS TOO
+                ProfilePhotoPath = user.ProfilePhotoPath  // 👈 AND THIS
             };
         }
 
@@ -59,26 +65,50 @@ namespace dotnet.Services
 
         public async Task<string> UploadProfileImageAsync(IFormFile file, int userId)
         {
+            Console.WriteLine($"Uploading file for user {userId}. File size: {file.Length} bytes. File name: {file.FileName}");
+
+            Console.WriteLine($"Received file: {file?.FileName ?? "null"} - Size: {file?.Length ?? 0}");
             if (file == null || file.Length == 0)
             {
                 throw new ArgumentException("No file uploaded.");
             }
 
             var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
+            Console.WriteLine($"Uploads folder path: {uploadsFolder}");
+
             Directory.CreateDirectory(uploadsFolder); // Ensure directory exists
-
-            var fileName = $"{userId}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-            var filePath = Path.Combine(uploadsFolder, fileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
 
             var user = await _userRepository.GetUserByIdAsync(userId);
             if (user == null)
             {
                 throw new KeyNotFoundException("User not found");
+            }
+
+            // Delete old image if it exists
+            if (!string.IsNullOrEmpty(user.ProfilePhotoPath))
+            {
+                var oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", user.ProfilePhotoPath.TrimStart('/'));
+                if (System.IO.File.Exists(oldImagePath))
+                {
+                    System.IO.File.Delete(oldImagePath);
+                }
+            }
+
+            // Save new image
+            var fileName = $"{userId}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            try
+            {
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+                Console.WriteLine($"File successfully saved at: {filePath}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving file: {ex.Message}");
             }
 
             user.ProfilePhotoPath = $"/uploads/{fileName}";

@@ -46,7 +46,9 @@ namespace dotnet.Repositories
 
             existingUserDAL.FirstName = updatedUser.FirstName;
             existingUserDAL.LastName = updatedUser.LastName;
+            existingUserDAL.Username = updatedUser.Username;
             existingUserDAL.Email = updatedUser.Email;
+            existingUserDAL.PhoneNum = updatedUser.PhoneNum;
             existingUserDAL.ProfilePhotoPath = updatedUser.ProfilePhotoPath;
 
             _context.Users.Update(existingUserDAL);
