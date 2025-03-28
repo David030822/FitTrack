@@ -2,7 +2,10 @@
 
 import 'package:fitness_app/components/my_button.dart';
 import 'package:fitness_app/components/my_text_field.dart';
-import 'package:fitness_app/pages/home_page.dart';
+import 'package:fitness_app/pages/login_page.dart';
+import 'package:fitness_app/responsive/constants.dart';
+import 'package:fitness_app/services/api_service.dart';
+import 'package:fitness_app/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -19,6 +22,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
   final emailController = TextEditingController();
+  final phoneController = TextEditingController();
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
@@ -38,9 +42,8 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> registerUser() async {
-    const String apiUrl = "http://192.168.0.142:5082/api/users/register";  // PC IP1
-    // const String apiUrl = "http://192.168.0.226:5082/api/users/register";   // PC IP2
-    // const String apiUrl = "http://10.0.0.2:5082/api/users/register";
+    const String apiUrl = "$BASE_URL/api/users/register";  // PC1 IP
+    // const String apiUrl = "$BASE_URL/api/users/register";   // PC2 IP
 
     if (passwordController.text != confirmPasswordController.text) {
       showError("Passwords do not match!");
@@ -51,6 +54,7 @@ class _RegisterPageState extends State<RegisterPage> {
       "firstName": firstNameController.text,
       "lastName": lastNameController.text,
       "email": emailController.text,
+      "phoneNum": phoneController.text,
       "username": usernameController.text,
       "password": passwordController.text,
     };
@@ -72,11 +76,24 @@ class _RegisterPageState extends State<RegisterPage> {
           showSuccess("User registered successfully!");  // ✅ Show GREEN SnackBar
         }
 
-        if (mounted) {
+        // if (mounted) {
+        //   Navigator.pushReplacement(
+        //     context,
+        //     MaterialPageRoute(builder: (context) => HomePage()),
+        //   );
+        // }
+        // After successful registration:
+        final token = await AuthService.getToken();
+        final userId = await AuthService.getUserIdFromToken(token!);
+        final user = await ApiService.getUserData(userId!, token);
+
+        if (user != null) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => HomePage()),
+            MaterialPageRoute(builder: (context) => LoginPage()),
           );
+        } else {
+          showError("Failed to load user data after registration");
         }
       } else {
         try {
@@ -136,11 +153,14 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       
                       SizedBox(height: 25),
+
+                      const Text('* Required'),
+                      const SizedBox(height: 10),
                       
                       // first name
                       MyTextField(
                         controller: firstNameController,
-                        hintText: 'First Name',
+                        hintText: '*First Name',
                         obscureText: false,
                       ),
                       
@@ -149,7 +169,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       // last name
                       MyTextField(
                         controller: lastNameController,
-                        hintText: 'Last Name',
+                        hintText: '*Last Name',
                         obscureText: false,
                       ),
                       
@@ -158,7 +178,16 @@ class _RegisterPageState extends State<RegisterPage> {
                       // email
                       MyTextField(
                         controller: emailController,
-                        hintText: 'Email',
+                        hintText: '*Email',
+                        obscureText: false,
+                      ),
+                      
+                      SizedBox(height: 10),
+
+                      // phone
+                      MyTextField(
+                        controller: phoneController,
+                        hintText: 'Phone number',
                         obscureText: false,
                       ),
                       
@@ -167,7 +196,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       // username textfield
                       MyTextField(
                         controller: usernameController,
-                        hintText: 'Username',
+                        hintText: '*Username',
                         obscureText: false,
                       ),
                       
@@ -176,7 +205,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       // password textfield
                       MyTextField(
                         controller: passwordController,
-                        hintText: 'Password',
+                        hintText: '*Password',
                         obscureText: true,
                       ),
                       
@@ -185,7 +214,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       // confirm password
                       MyTextField(
                         controller: confirmPasswordController,
-                        hintText: 'Confirm Password',
+                        hintText: '*Confirm Password',
                         obscureText: true,
                       ),
                       
@@ -194,7 +223,9 @@ class _RegisterPageState extends State<RegisterPage> {
                       // register now button
                       MyButton(
                         text: 'Register Now',
-                        onTap: () => registerUser(),
+                        onTap: () {
+                          registerUser();
+                        },
                       ),
                     ],
                   ),

@@ -33,13 +33,13 @@ class User {
   // Create a User object from JSON
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'],
-      firstName: json['firstName'],
-      lastName: json['lastName'],
-      email: json['email'],
-      username: json['username'],
-      phoneNum: json['phoneNum'],
-      profileImagePath: json['profileImagePath'],
+      id: json['id'] ?? 0, // ✅ Default to 0 if null (change based on backend)
+      firstName: json['firstName'] ?? '',
+      lastName: json['lastName'] ?? '',
+      email: json['email']?.trim() ?? '', // ✅ Trim email in case of trailing spaces
+      phoneNum: json['phoneNum'], // ✅ Keep null if it's null
+      username: json['username'] ?? '',
+      profileImagePath: json['profilePhotoPath'], // ✅ Keep null if it's null
     );
   }
 }

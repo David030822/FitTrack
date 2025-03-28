@@ -146,3 +146,4 @@ C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\bin\Debug\net8.0
 C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
 C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\bin\Debug\net8.0\Microsoft.IdentityModel.Tokens.dll
 C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\bin\Debug\net8.0\System.IdentityModel.Tokens.Jwt.dll
+C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\bin\Debug\net8.0\dotnet.staticwebassets.runtime.json
