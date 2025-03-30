@@ -1,5 +1,7 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
+import 'dart:convert';
+
 import 'package:fitness_app/components/drawer_tile.dart';
 import 'package:fitness_app/pages/about_page.dart';
 import 'package:fitness_app/pages/goals_page.dart';
@@ -8,6 +10,8 @@ import 'package:fitness_app/pages/login_page.dart';
 import 'package:fitness_app/pages/profile_page.dart';
 import 'package:fitness_app/pages/settings_page.dart';
 import 'package:fitness_app/responsive/constants.dart';
+import 'package:fitness_app/services/api_service.dart';
+import 'package:fitness_app/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -19,6 +23,18 @@ class MyDrawer extends StatefulWidget {
 }
 
 class _MyDrawerState extends State<MyDrawer> {
+
+  void showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
+  void showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.green),
+    );
+  }
 
   void logout(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
@@ -64,15 +80,51 @@ class _MyDrawerState extends State<MyDrawer> {
                 DrawerTile(
                   title: 'P R O F I L E',
                   leading: const Icon(Icons.person),
-                  onTap: () {
+                  onTap: () async {
                     Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProfilePage(user: users[0]),
-                      ),
-                    );
-                  } 
+
+                    final token = await AuthService.getToken();
+                    if (token == null) {
+                      showError("Error: No token found");
+                      debugPrint("Token is NULL!");
+                      return;
+                    } else {
+                      debugPrint("Token retrieved successfully: $token");
+                    }
+
+                    if (token != null) {
+                      final parts = token.split('.');
+                      if (parts.length == 3) {
+                        final payload = jsonDecode(
+                          utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
+                        );
+
+                        debugPrint("Decoded Payload: $payload");
+                      } else {
+                        debugPrint("Invalid Token Format!");
+                      }
+                    }
+
+                    final userId = await AuthService.getUserIdFromToken(token);
+                    if (userId == null) {
+                      showError("Error: Could not extract userId from token");
+                      debugPrint("Failed to extract userId from token!");
+                      return;
+                    } else {
+                      debugPrint("Extracted userId: $userId");
+                    }
+
+                    // Fetch user data
+                    final user = await ApiService.getUserData(userId, token);
+                    if (user != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => ProfilePage(user: user)),
+                      );
+                    } else {
+                      showError("Error loading user data");
+                    }
+                  },
                 ),
 
                 // goals tile

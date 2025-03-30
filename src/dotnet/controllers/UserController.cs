@@ -59,6 +59,7 @@ namespace dotnet.Controllers
                 user.FirstName,
                 user.LastName,
                 user.Email,
+                user.Username,
                 user.PhoneNum,
                 user.ProfilePhotoPath
             });
@@ -87,14 +88,20 @@ namespace dotnet.Controllers
             return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
         }
 
+        // [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(int id, UserDTO userDTO)
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] UserUpdateDTO updateDto)
         {
-            var existingUser = await _userService.GetUserByIdAsync(id);
-            if (existingUser == null) return NotFound();
+            var user = await _userService.GetUserByIdAsync(id);
+            if (user == null) return NotFound();
 
-            var updatedUser = UserConverter.FromUserDTOToUser(userDTO, id);
-            await _userService.UpdateUserAsync(id, updatedUser);
+            user.FirstName = updateDto.FirstName ?? user.FirstName;
+            user.LastName = updateDto.LastName ?? user.LastName;
+            user.Username = updateDto.Username ?? user.Username;
+            user.PhoneNum = updateDto.PhoneNum ?? user.PhoneNum;
+            user.ProfilePhotoPath = updateDto.ProfileImagePath ?? user.ProfilePhotoPath;
+
+            await _userService.UpdateUserAsync(id, UserConverter.FromUserDTOToUser(user));
             return NoContent();
         }
 
@@ -108,6 +115,7 @@ namespace dotnet.Controllers
             return NoContent();
         }
 
+        // [Authorize]
         [HttpPost("upload-profile-image")]
         public async Task<IActionResult> UploadProfileImage(IFormFile file, [FromQuery] int userId)
         {
@@ -128,6 +136,57 @@ namespace dotnet.Controllers
             {
                 return StatusCode(500, "An error occurred while uploading the image.");
             }
+        }
+
+        // [Authorize]
+        [HttpGet("search_users")]
+        public async Task<IActionResult> SearchUsers([FromQuery] string query)
+        {
+            var users = await _userService.SearchUsersAsync(query);
+            return Ok(users);
+        }
+
+        // [Authorize]
+        [HttpPost("{userId}/following/{followingId}")]
+        public async Task<IActionResult> FollowUser(int userId, int followingId)
+        {
+            var result = await _userService.FollowUserAsync(userId, followingId);
+            return result ? Ok() : BadRequest("Unable to follow user.");
+        }
+
+        // [Authorize]
+        [HttpDelete("{userId}/following/{followingId}")]
+        public async Task<IActionResult> UnfollowUser(int userId, int followingId)
+        {
+            var result = await _userService.UnfollowUserAsync(userId, followingId);
+            return result ? Ok() : BadRequest("Unable to unfollow user.");
+        }
+
+        // [Authorize]
+        [HttpGet("following/{userId}/{targetUserId}")]
+        public async Task<IActionResult> IsFollowing(int userId, int targetUserId)
+        {
+            var result = await _userService.IsFollowingAsync(userId, targetUserId);
+            return Ok(result);
+        }
+
+        // [Authorize]
+        [HttpGet("{userId}/following")]
+        public async Task<IActionResult> GetFollowing(int userId)
+        {
+            var following = await _userService.GetFollowingAsync(userId);
+            return Ok(following);
+        }
+
+        [HttpGet("{userId}/followers")]
+        public async Task<IActionResult> GetFollowers(int userId)
+        {
+            var followers = await _userService.GetFollowersAsync(userId);
+            if (followers == null)
+            {
+                return NotFound("User not found or has no followers.");
+            }
+            return Ok(followers);
         }
     }
 }

@@ -1,6 +1,8 @@
+import 'package:fitness_app/components/my_button.dart';
 import 'package:fitness_app/components/my_drawer.dart';
 import 'package:fitness_app/models/user.dart';
 import 'package:fitness_app/pages/friends_page.dart';
+import 'package:fitness_app/responsive/constants.dart';
 import 'package:fitness_app/services/api_service.dart';
 import 'package:fitness_app/services/auth_service.dart';
 import 'package:flutter/cupertino.dart';
@@ -8,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'package:shared_preferences/shared_preferences.dart'; // For local storage
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -21,23 +22,27 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  File? _image; 
+  File? _image;
   User? _user;
-  bool? _isLoading;
-  String? _profileImageUrl;
-  final int userId = 29; // Replace with actual logged-in user ID
-  final String baseUrl = "http://192.168.0.142:5082/api/users"; // Adjust as needed
+  bool _isLoading = false;
+  final String baseUrl = "$BASE_URL/api/users";
   late TextEditingController _firstNameController;
   late TextEditingController _lastNameController;
-  late TextEditingController _emailController;
+  late TextEditingController _usernameController;
   late TextEditingController _phoneController;
+  late int _followersCount;
+  late int _followingCount;
 
   @override
   void initState() {
     super.initState();
-    _firstNameController = TextEditingController(text: widget.user.firstName);
-    _lastNameController = TextEditingController(text: widget.user.lastName);
-    _phoneController = TextEditingController(text: widget.user.phoneNum ?? '');
+    _firstNameController = TextEditingController(text: _user?.firstName ?? '');
+    _lastNameController = TextEditingController(text: _user?.lastName ?? '');
+    _usernameController = TextEditingController(text: _user?.username ?? '');
+    _phoneController = TextEditingController(text: _user?.phoneNum ?? '');
+    _followersCount = 0;
+    _followingCount = 0;
+    _loadUserData(); // Fetch fresh data
     _fetchProfileImage(); // Load image from backend
   }
 
@@ -57,37 +62,79 @@ class _ProfilePageState extends State<ProfilePage> {
       throw Exception("Invalid user ID");
     }
 
-    final user = await ApiService.getUserData(userId, token);
-    if (user != null) {
+    final fetchedUser = await ApiService.getUserData(userId, token);
+    if (fetchedUser != null) {
       setState(() {
-        _user = user;
-        _firstNameController.text = user.firstName;
-        _lastNameController.text = user.lastName;
-        _phoneController.text = user.phoneNum ?? "";
-        _emailController.text = user.email;
+        _user = fetchedUser; // Update user object
+        _firstNameController.text = _user!.firstName;
+        _lastNameController.text = _user!.lastName;
+        _usernameController.text = _user!.username;
+        _phoneController.text = _user!.phoneNum ?? 'Not set';
       });
     }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error: ${e.toString()}')),
-    );
-  } finally {
+
+    _loadProfileStats(userId);
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadProfileStats(int userId) async {
+    try {
+      _followingCount = await ApiService.getFollowing(userId).then((list) => list.length);
+      _followersCount = await ApiService.getFollowers(userId).then((list) => list.length);
+      setState(() {});
+    } catch (e) {
+      print("Error fetching profile stats: $e");
+    }
+  }
+
+  Future<void> _fetchProfileImage() async {
+    setState(() {
+      _isLoading = true;
+    });
+    await Future.delayed(const Duration(seconds: 1)); // Wait a bit for the server to update
+
+    final token = await AuthService.getToken();
+    if (token == null) {
+      throw Exception("User is not logged in");
+    }
+
+    final userId = await AuthService.getUserIdFromToken(token);
+    if (userId == null) {
+      return;
+    }
+
+    // ✅ Fetch latest user data to get the updated profile image path
+    await _loadUserData();
+    
+    // Only fetch if profileImagePath exists and is not empty.
+    if (_user?.profileImagePath != null && _user!.profileImagePath!.isNotEmpty) {
+      final imageUrl = "$BASE_URL${_user!.profileImagePath}";
+      print("Fetching profile image from: $imageUrl");
+
+      final url = Uri.parse(imageUrl);
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        // Process image response if needed.
+      } else {
+        print("Error fetching image: ${response.statusCode} - ${response.body}");
+      }
+    } else {
+      print("No profile image to fetch.");
+    }
+
     setState(() {
       _isLoading = false;
     });
-  }
-}
-
-  Future<void> _fetchProfileImage() async {
-    final url = Uri.parse('$baseUrl/$userId/profile-image');
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final jsonResponse = jsonDecode(response.body);
-      setState(() {
-        _profileImageUrl = jsonResponse['imageUrl'];
-      });
-    }
   }
 
   Future<void> _pickImage() async {
@@ -99,26 +146,50 @@ class _ProfilePageState extends State<ProfilePage> {
 
       // Upload the selected image
       String? uploadedImageUrl = await _uploadProfileImage(imageFile);
-      if (uploadedImageUrl != null) {
-        setState(() {
-          _profileImageUrl = uploadedImageUrl; // Update UI with new image URL
-        });
-      }
     }
   }
 
   Future<String?> _uploadProfileImage(File imageFile) async {
+    setState(() {
+      _isLoading = true; // ✅ Show loading indicator
+    });
+
+    final token = await AuthService.getToken();
+    if (token == null) {
+      throw Exception("User is not logged in");
+    }
+
+    final userId = await AuthService.getUserIdFromToken(token);
+    if (userId == null) {
+      return null;
+    }
+
     var url = Uri.parse('$baseUrl/upload-profile-image?userId=$userId');
     var request = http.MultipartRequest('POST', url);
+    request.headers['Authorization'] = "Bearer $token"; // Include auth header
     request.files.add(await http.MultipartFile.fromPath('file', imageFile.path));
 
-    var response = await request.send();
+    print("Uploading profile image to: $url");
+
+    var streamedResponse = await request.send();
+    var response = await http.Response.fromStream(streamedResponse);
+
     if (response.statusCode == 200) {
-      var responseBody = await response.stream.bytesToString();
-      var jsonResponse = jsonDecode(responseBody);
-      return jsonResponse['imageUrl']; // Backend should return the uploaded image URL
+      print("Upload successful: ${response.body}");
+      // ✅ Parse the new profile image path from API response
+      final jsonResponse = jsonDecode(response.body);
+      final newImagePath = jsonResponse["profilePhotoPath"];
+
+      setState(() {
+        _user!.profileImagePath = newImagePath; // ✅ Update image path instantly
+        _isLoading = false; // ✅ Hide loading indicator
+      });
+
+      print("New profile image path: $newImagePath");
+
+    } else {
+      print("Error uploading image: ${response.statusCode} - ${response.body}");
     }
-    return null;
   }
 
   Future<void> _saveProfileChanges() async {
@@ -136,34 +207,44 @@ class _ProfilePageState extends State<ProfilePage> {
       String? profileImagePath = _user?.profileImagePath;
 
       if (_image != null) {
-        profileImagePath = await _uploadProfileImage(_image!) ?? _user?.profileImagePath;
+        String? uploadedImageUrl = await _uploadProfileImage(_image!);
+        if (uploadedImageUrl != null) {
+          profileImagePath = uploadedImageUrl;
+        }
       }
 
       final updatedUser = {
         "firstName": _firstNameController.text,
         "lastName": _lastNameController.text,
-        "phoneNum": _phoneController.text.isNotEmpty ? _phoneController.text : null,
-        "email": _emailController.text,
+        "username": _usernameController.text,
+        "phoneNum": _phoneController.text.isNotEmpty ? _phoneController.text : "",
         "profileImagePath": profileImagePath,
       };
 
-      var url = Uri.parse('http://192.168.0.142:5082/api/users/$userId');
+      var url = Uri.parse('$baseUrl/$userId');
+      print("Sending PUT request to: $url with body: $updatedUser");
+
       var response = await http.put(
         url,
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer $token", // Sending Bearer token
+          "Authorization": "Bearer $token",
         },
         body: jsonEncode(updatedUser),
       );
 
+      print("Response status: ${response.statusCode}");
+      print("Response body: ${response.body}");
+
       if (response.statusCode == 204) {
         _showSuccessMessage("Profile updated successfully!");
-        _loadUserData(); // Reload data after successful update
+        await _fetchProfileImage();  
+        await _loadUserData();
       } else {
         throw Exception("Error updating profile: ${response.body}");
       }
     } catch (e) {
+      print("Network error: $e");
       _showErrorMessage("Network error: $e");
     }
   }
@@ -190,7 +271,9 @@ class _ProfilePageState extends State<ProfilePage> {
         backgroundColor: Colors.transparent,
       ),
       drawer: const MyDrawer(),
-      body: ListView(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         children: [
           Center(
@@ -207,18 +290,37 @@ class _ProfilePageState extends State<ProfilePage> {
             onTap: _pickImage,
             child: CircleAvatar(
               radius: 80,
-              backgroundImage: _image != null ? FileImage(_image!) : null,
-              child: _image == null
-                  ? ClipOval(
-                      child: Image.asset(
-                        widget.user.profileImagePath ?? 'assets/default_profile.png',
+              child: ClipOval(
+                child: widget.user.profileImagePath != null && widget.user.profileImagePath!.isNotEmpty
+                    ? Image.network(
+                        "$BASE_URL${widget.user.profileImagePath}",
+                        headers: const {"Accept": "image/jpeg"},
+                        // File(widget.user.profileImagePath!),
+                        width: 160,
+                        height: 160,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          print("Error loading image: $error");
+                          return const Icon(Icons.error);
+                        },
+                      )
+                    : Image.asset(
+                        'assets/images/default_profile.png', // Default profile picture
                         width: 160,
                         height: 160,
                         fit: BoxFit.cover,
                       ),
-                    )
-                  : const Icon(Icons.person, size: 80),
+              ),
             ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text("Following: $_followingCount"),
+              const SizedBox(width: 10),
+              Text("Followers: $_followersCount"),
+            ],
           ),
           const SizedBox(height: 10),
           itemProfile(
@@ -231,6 +333,13 @@ class _ProfilePageState extends State<ProfilePage> {
           itemProfile(
             title: 'Last Name',
             controller: _lastNameController,
+            icon: CupertinoIcons.person,
+            isEditable: true,
+          ),
+          const SizedBox(height: 10),
+          itemProfile(
+            title: 'Username',
+            controller: _usernameController,
             icon: CupertinoIcons.person,
             isEditable: true,
           ),
@@ -249,9 +358,11 @@ class _ProfilePageState extends State<ProfilePage> {
             isEditable: false,
           ),
           const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: _saveProfileChanges,
-            child: const Text("Save Changes"),
+          MyButton(
+            onTap: () {
+              _saveProfileChanges();
+            },
+            text: 'Save changes',
           ),
           const SizedBox(height: 20),
           GestureDetector(
