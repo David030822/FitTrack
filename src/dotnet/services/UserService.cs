@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using dotnet.Services.Interfaces;
 using dotnet.Repositories.Interfaces;
 using dotnet.DTOs;
+using dotnet.DAL;
+using dotnet.Helper;
 
 namespace dotnet.Services
 {
@@ -115,6 +117,36 @@ namespace dotnet.Services
             await _userRepository.UpdateUserAsync(userId, user);
 
             return user.ProfilePhotoPath;
+        }
+
+        public Task<IEnumerable<User>> SearchUsersAsync(string query)
+        {
+            return _userRepository.SearchUsersAsync(query);
+        }
+
+        public Task<bool> FollowUserAsync(int userId, int followingId)
+        {
+            return _userRepository.AddFollowingAsync(userId, followingId);
+        }
+
+        public Task<bool> UnfollowUserAsync(int userId, int followingId)
+        {
+            return _userRepository.RemoveFollowingAsync(userId, followingId);
+        }
+
+        public Task<bool> IsFollowingAsync(int userId, int targetUserId)
+        {
+            return _userRepository.IsFollowingAsync(userId, targetUserId);
+        }
+
+        public Task<IEnumerable<User>> GetFollowingAsync(int userId)
+        {
+            return _userRepository.GetFollowingAsync(userId);
+        }
+
+        public Task<IEnumerable<User>> GetFollowersAsync(int userId)
+        {
+            return _userRepository.GetFollowersAsync(userId);
         }
     }
 }

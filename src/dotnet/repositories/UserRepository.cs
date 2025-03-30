@@ -74,5 +74,76 @@ namespace dotnet.Repositories
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
+
+        public async Task<IEnumerable<User>> SearchUsersAsync(string query)
+        {
+            List<UserDAL> data = await _context.Users
+                .Where(u => u.Username.Contains(query) || u.FirstName.Contains(query) || u.LastName.Contains(query))
+                .ToListAsync();
+
+            return data.Select(UserConverter.FromUserDALToUser).ToList();
+        }
+
+        public async Task<bool> AddFollowingAsync(int userId, int followingId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            var followee = await _context.Users.FindAsync(followingId);
+
+            if (user == null || followee == null) return false;
+
+            var existingFollow = await _context.Followings
+                .AnyAsync(f => f.FollowerID == userId && f.FollowedID == followingId);
+
+            if (existingFollow) return false;
+
+            _context.Followings.Add(new FollowingDAL
+            {
+                FollowerID = userId,
+                FollowedID = followingId
+            });
+
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> RemoveFollowingAsync(int userId, int followingId)
+        {
+            var followRelation = await _context.Followings
+                .FirstOrDefaultAsync(f => f.FollowerID == userId && f.FollowedID == followingId);
+
+            if (followRelation == null) return false;
+
+            _context.Followings.Remove(followRelation);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> IsFollowingAsync(int userId, int targetUserId)
+        {
+            return await _context.Followings
+                .AnyAsync(f => f.FollowerID == userId && f.FollowedID == targetUserId);
+        }
+
+        public async Task<IEnumerable<User>> GetFollowingAsync(int userId)
+        {
+            List<UserDAL> data = await _context.Followings
+                .Where(f => f.FollowerID == userId)
+                .Select(f => f.Followed)
+                .ToListAsync();
+
+            return data.Select(UserConverter.FromUserDALToUser).ToList();
+        }
+
+        public async Task<IEnumerable<User>> GetFollowersAsync(int userId)
+        {
+            Console.WriteLine($"Fetching followers for user ID: {userId}");
+
+            var query = _context.Followings.Where(f => f.FollowedID == userId);
+            Console.WriteLine($"SQL Query: {query.ToQueryString()}");  // Log generated SQL (for EF Core 5+)
+
+            List<UserDAL> data = await query.Select(f => f.Follower).ToListAsync();
+
+            Console.WriteLine($"Followers count: {data.Count}");
+
+            return data.Select(UserConverter.FromUserDALToUser).ToList();
+        }
     }
 }
