@@ -88,6 +88,7 @@ namespace dotnet.Controllers
             return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
         }
 
+        // [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] UserUpdateDTO updateDto)
         {
@@ -114,6 +115,7 @@ namespace dotnet.Controllers
             return NoContent();
         }
 
+        // [Authorize]
         [HttpPost("upload-profile-image")]
         public async Task<IActionResult> UploadProfileImage(IFormFile file, [FromQuery] int userId)
         {
@@ -134,6 +136,57 @@ namespace dotnet.Controllers
             {
                 return StatusCode(500, "An error occurred while uploading the image.");
             }
+        }
+
+        // [Authorize]
+        [HttpGet("search_users")]
+        public async Task<IActionResult> SearchUsers([FromQuery] string query)
+        {
+            var users = await _userService.SearchUsersAsync(query);
+            return Ok(users);
+        }
+
+        // [Authorize]
+        [HttpPost("{userId}/following/{followingId}")]
+        public async Task<IActionResult> FollowUser(int userId, int followingId)
+        {
+            var result = await _userService.FollowUserAsync(userId, followingId);
+            return result ? Ok() : BadRequest("Unable to follow user.");
+        }
+
+        // [Authorize]
+        [HttpDelete("{userId}/following/{followingId}")]
+        public async Task<IActionResult> UnfollowUser(int userId, int followingId)
+        {
+            var result = await _userService.UnfollowUserAsync(userId, followingId);
+            return result ? Ok() : BadRequest("Unable to unfollow user.");
+        }
+
+        // [Authorize]
+        [HttpGet("following/{userId}/{targetUserId}")]
+        public async Task<IActionResult> IsFollowing(int userId, int targetUserId)
+        {
+            var result = await _userService.IsFollowingAsync(userId, targetUserId);
+            return Ok(result);
+        }
+
+        // [Authorize]
+        [HttpGet("{userId}/following")]
+        public async Task<IActionResult> GetFollowing(int userId)
+        {
+            var following = await _userService.GetFollowingAsync(userId);
+            return Ok(following);
+        }
+
+        [HttpGet("{userId}/followers")]
+        public async Task<IActionResult> GetFollowers(int userId)
+        {
+            var followers = await _userService.GetFollowersAsync(userId);
+            if (followers == null)
+            {
+                return NotFound("User not found or has no followers.");
+            }
+            return Ok(followers);
         }
     }
 }

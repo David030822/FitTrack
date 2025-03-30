@@ -30,6 +30,8 @@ class _ProfilePageState extends State<ProfilePage> {
   late TextEditingController _lastNameController;
   late TextEditingController _usernameController;
   late TextEditingController _phoneController;
+  late int _followersCount;
+  late int _followingCount;
 
   @override
   void initState() {
@@ -38,6 +40,8 @@ class _ProfilePageState extends State<ProfilePage> {
     _lastNameController = TextEditingController(text: _user?.lastName ?? '');
     _usernameController = TextEditingController(text: _user?.username ?? '');
     _phoneController = TextEditingController(text: _user?.phoneNum ?? '');
+    _followersCount = 0;
+    _followingCount = 0;
     _loadUserData(); // Fetch fresh data
     _fetchProfileImage(); // Load image from backend
   }
@@ -68,6 +72,9 @@ class _ProfilePageState extends State<ProfilePage> {
         _phoneController.text = _user!.phoneNum ?? 'Not set';
       });
     }
+
+    _loadProfileStats(userId);
+
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.toString()}')),
@@ -76,6 +83,16 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _loadProfileStats(int userId) async {
+    try {
+      _followingCount = await ApiService.getFollowing(userId).then((list) => list.length);
+      _followersCount = await ApiService.getFollowers(userId).then((list) => list.length);
+      setState(() {});
+    } catch (e) {
+      print("Error fetching profile stats: $e");
     }
   }
 
@@ -129,11 +146,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
       // Upload the selected image
       String? uploadedImageUrl = await _uploadProfileImage(imageFile);
-      // if (uploadedImageUrl != null) {
-      //   setState(() {
-      //     _profileImageUrl = uploadedImageUrl; // Update UI with new image URL
-      //   });
-      // }
     }
   }
 
@@ -300,6 +312,15 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
               ),
             ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text("Following: $_followingCount"),
+              const SizedBox(width: 10),
+              Text("Followers: $_followersCount"),
+            ],
           ),
           const SizedBox(height: 10),
           itemProfile(
