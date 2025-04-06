@@ -1,3 +1,4 @@
+import 'package:fitness_app/models/workout.dart';
 import 'package:fitness_app/responsive/constants.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
@@ -174,6 +175,87 @@ class ApiService {
     } else {
       throw Exception(
           'Failed to check following status: ${response.statusCode}');
+    }
+  }
+
+  Future<int?> startWorkout(int categoryId) async {
+    final token = await AuthService.getToken();
+    if (token == null) {
+      throw Exception("User is not logged in");
+    }
+
+    final userId = await AuthService.getUserIdFromToken(token);
+    if (userId == null) {
+      return null;
+    }
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/workouts?userId=$userId&categoryId=$categoryId'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({}),
+    );
+
+    if (response.statusCode == 400 || response.statusCode == 409) {
+      final decoded = jsonDecode(response.body);
+      throw Exception(decoded['error'] ?? 'Could not start workout.');
+    }
+
+    if (response.statusCode == 201) {
+      print('🔥 Response body: ${response.body}');
+
+      try {
+        final data = jsonDecode(response.body);
+        final workout = Workout.fromJson(data);
+        return workout.id;
+      } catch (e) {
+        print(response.body);
+      }
+    } else {
+      print('Failed to start workout: ${response.body}');
+      return null;
+    }
+  }
+
+  Future<bool> finishWorkout({
+    required int workoutId,
+    required double distance,
+    required double caloriesBurned,
+  }) async {
+    print("⚙️ Sending finishWorkout request...");
+    final body = jsonEncode({
+      'newCalories': caloriesBurned,
+      'distance': distance,
+    });
+    print("Sending to backend: $body");
+
+    final response = await http.put(
+      Uri.parse('$baseUrl/api/workouts/$workoutId/update-calories'),
+      headers: {'Content-Type': 'application/json'},
+      body: body,
+    );
+
+    if (response.statusCode == 200) {
+      print("✅Workout updated successfully");
+      return true;
+    } else {
+      print("❌Failed to update workout: ${response.body}");
+      return false;
+    }
+  }
+
+  Future<void> deleteWorkout(int workoutId) async {
+    final url = Uri.parse('$baseUrl/api/workouts/$workoutId');
+
+    final response = await http.delete(url, headers: {
+      'Content-Type': 'application/json',
+    });
+
+    if (response.statusCode == 204) {
+      print('🗑️ Workout deleted successfully.');
+    } else if (response.statusCode == 404) {
+      print('❌ Workout not found.');
+    } else {
+      print('❌ Failed to delete workout: ${response.body}');
     }
   }
 }

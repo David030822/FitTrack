@@ -1,12 +1,17 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
+import 'dart:convert';
+
 import 'package:fitness_app/components/my_text_field.dart';
 import 'package:fitness_app/database/food_database.dart';
 import 'package:fitness_app/pages/home_page.dart';
+import 'package:fitness_app/responsive/constants.dart';
+import 'package:fitness_app/services/api_service.dart';
 import 'package:fitness_app/util/custom_button.dart';
 import 'package:fitness_app/util/my_dropdown_button.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
 
@@ -23,12 +28,35 @@ class _TrainingPageState extends State<TrainingPage> {
   final _scrollController = ScrollController();
   final _caloriesController = TextEditingController();
   String _calories = '';
+  int? _currentWorkoutId;
+  DateTime? _startTime;
+  int? _selectedCategoryId; // Stores the selected category ID
+  bool isLoading = true;
+  bool isPaused = false;
+  final String baseUrl = BASE_URL;
 
   @override
   void dispose() {
     super.dispose();
     _stopWatchTimer.dispose();
     _scrollController.dispose();
+  }
+
+  void showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
+  void showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.green),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
   }
 
   @override
@@ -193,7 +221,13 @@ class _TrainingPageState extends State<TrainingPage> {
             
                               SizedBox(width: 15),
             
-                              const MyDropdownButton(),
+                              MyDropdownButton(
+                                onCategorySelected: (int selectedId) {
+                                  setState(() {
+                                    _selectedCategoryId = selectedId;
+                                  });
+                                },
+                              ),
                             ],
                           ),
                         ],
@@ -225,30 +259,74 @@ class _TrainingPageState extends State<TrainingPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
+                              // start button
                               CustomButton(
                                 color: Colors.green,
                                 textColor: Colors.white,
-                                onPressed: () {
-                                  _stopWatchTimer.onStartTimer();
+                                onPressed: () async {
+                                  print("Current workout ID: $_currentWorkoutId");
+                                  // bool isWorkoutInProgress() =>
+                                  //   _currentWorkoutId != null && _currentWorkoutId != 0;
+                                  // if (isWorkoutInProgress()) {
+                                  //   // Already started, don't allow
+                                  //   print("Workout already in progress.");
+                                  //   showError("Workout already in progress!");
+                                  //   return;
+                                  // }
+                                  try {
+                                    _stopWatchTimer.onStartTimer();
+                                    final categoryId = _selectedCategoryId;
+                                    if (categoryId == null) {
+                                      showError("Please select a category.");
+                                      return;
+                                    }
+                                    final api = ApiService();
+                                    final workoutId = await api.startWorkout(categoryId);
+
+                                    print("Workout ID after start: $workoutId");
+
+                                    if (workoutId != null) {
+                                      setState(() {
+                                        _currentWorkoutId = workoutId;
+                                        _startTime = DateTime.now();
+                                      });
+                                      print("🔥 Workout started with ID: $_currentWorkoutId");
+                                    } else {
+                                      showError("Failed to start workout.");
+                                    }
+                                  } catch (e) {
+                                    print('❌Failed to start workout: $e');
+                                    showError(e.toString());
+                                  }
                                 },
                                 label: 'Start',
                               ),
                       
                               const SizedBox(width: 10),
                       
+                              // stop
                               CustomButton(
                                 color: Colors.red,
                                 textColor: Colors.white,
                                 onPressed: () {
-                                  _stopWatchTimer.onStopTimer();
+                                  setState(() {
+                                    isPaused = !isPaused;
+                                  });
+                                  if (isPaused) {
+                                    _stopWatchTimer.onStopTimer();
+                                  }
+                                  else {
+                                    _stopWatchTimer.onStartTimer();
+                                  }
                                 },
-                                label: 'Stop',
+                                label: isPaused ? 'Resume' : 'Pause',
                               ),
                             ],
                           ),
                       
                           const SizedBox(height: 10),
                       
+                          // lap
                           CustomButton(
                             color: Color(0xFFF15C2A),
                             textColor: Colors.white,
@@ -263,6 +341,7 @@ class _TrainingPageState extends State<TrainingPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
+                              // reset
                               CustomButton(
                                 color: Colors.black,
                                 textColor: Colors.white,
@@ -274,12 +353,25 @@ class _TrainingPageState extends State<TrainingPage> {
                                       actions: [
                                         // confirm button
                                         MaterialButton(
-                                          onPressed: () {
-                                            // reset stopwatch
-                                            _stopWatchTimer.onResetTimer();
-                              
-                                            // pop box
-                                            Navigator.pop(context);
+                                          onPressed: () async {
+                                            final api = ApiService();
+                                            if (_currentWorkoutId != null) {
+                                              await api.deleteWorkout(_currentWorkoutId!);
+                                              print("✅Deleted workout with ID: $_currentWorkoutId successfully!");
+
+                                              if (mounted) {
+                                                setState(() {
+                                                  _currentWorkoutId = null;
+                                                  _startTime = null;
+                                                });
+                                              }
+
+                                              // reset stopwatch
+                                              _stopWatchTimer.onResetTimer();
+
+                                              // pop box
+                                              Navigator.pop(context);
+                                            }
                                           },
                                           child: const Text('Yes'),
                                         ),
@@ -301,10 +393,12 @@ class _TrainingPageState extends State<TrainingPage> {
             
                               const SizedBox(width: 10),
             
+                              // save
                               CustomButton(
                                 color: Colors.white,
                                 textColor: Colors.black,
                                 onPressed: () {
+                                  // print("🟢 Save button pressed");
                                   showDialog(
                                     context: context,
                                     builder: (context) => AlertDialog(
@@ -312,23 +406,57 @@ class _TrainingPageState extends State<TrainingPage> {
                                       actions: [
                                         // confirm button
                                         MaterialButton(
-                                          onPressed: () {
-                                            // save data to db...
-            
-                                            // reset stopwatch
-                                            _stopWatchTimer.onResetTimer();
-            
-                                            // pop box
-                                            Navigator.pop(context);
-            
-                                            // go back to home page
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) => HomePage(),
-                                              ),
-                                            );
-                                          },
+                                          onPressed: () async {
+                                            // print("🔵 YES BUTTON TAPPED");
+                                              // save data to db...
+                                              final elapsedSeconds = _stopWatchTimer.secondTime.value;
+                                              final caloriesBurned = 0.1 * elapsedSeconds; // or use your logic
+                                              final distance = elapsedSeconds * 0.005;
+
+                                              final api = ApiService();
+                                              print("Current workout ID: $_currentWorkoutId");
+
+                                              if (_currentWorkoutId != null) {
+                                                print("Sending update for workout ID: $_currentWorkoutId");
+
+                                              try {
+                                                final success = await api.finishWorkout(
+                                                  workoutId: _currentWorkoutId!,
+                                                  distance: distance,
+                                                  caloriesBurned: caloriesBurned,
+                                                );
+
+                                                if (success) {
+                                                  // reset timer
+                                                  _stopWatchTimer.onResetTimer();
+
+                                                  // optionally reset local state
+                                                  if (mounted) {
+                                                    setState(() {
+                                                      _currentWorkoutId = null;
+                                                      _startTime = null;
+                                                    });
+                                                  }
+
+                                                  Navigator.pop(context);
+                                                } else {
+                                                  // handle error
+                                                  print("❌Failed to update workout");
+                                                  Navigator.pop(context);
+                                                  showError("❌Failed to update workout");
+                                                }
+                                              } catch (e, st) {
+                                                  print("❌ Exception occurred while finishing workout: $e");
+                                                  print("Stacktrace: $st");
+                                                  showError("❌ An error occurred. Please try again.");
+                                                }
+                                              } else {
+                                                // handle error
+                                                print("❌Workout ID is NULL");
+                                                Navigator.pop(context);
+                                                showError("❌Failed to get workout ID");
+                                              }
+                                            },
                                           child: const Text('Yes'),
                                         ),
             

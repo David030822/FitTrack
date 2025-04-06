@@ -15,8 +15,8 @@ namespace dotnet.DAL
         public DateTime DateTime { get; set; }
 
         // Navigation property for one-to-one relationship
-        public WorkoutCaloriesDAL WorkoutCalories { get; set; }
-        public StepsDAL Steps { get; set; }
-        public MealDAL Meal { get; set; }
+        public WorkoutCaloriesDAL? WorkoutCalories { get; set; }
+        public StepsDAL? Steps { get; set; }
+        public MealDAL? Meal { get; set; }
     }
 }

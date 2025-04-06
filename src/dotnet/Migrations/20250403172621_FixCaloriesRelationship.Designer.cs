@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using dotnet.Data;
@@ -11,9 +12,11 @@ using dotnet.Data;
 namespace dotnet.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250403172621_FixCaloriesRelationship")]
+    partial class FixCaloriesRelationship
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -58,7 +61,22 @@ namespace dotnet.Migrations
                     b.Property<DateTime>("DateTime")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int?>("MealID")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("StepsID")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("WorkoutCaloriesWorkoutID")
+                        .HasColumnType("integer");
+
                     b.HasKey("CaloriesID");
+
+                    b.HasIndex("MealID");
+
+                    b.HasIndex("StepsID");
+
+                    b.HasIndex("WorkoutCaloriesWorkoutID");
 
                     b.ToTable("Calories");
                 });
@@ -312,7 +330,7 @@ namespace dotnet.Migrations
                     b.Property<double>("Distance")
                         .HasColumnType("double precision");
 
-                    b.Property<DateTime?>("EndDate")
+                    b.Property<DateTime>("EndDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("StartDate")
@@ -369,6 +387,27 @@ namespace dotnet.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Levels");
+                });
+
+            modelBuilder.Entity("dotnet.DAL.CaloriesDAL", b =>
+                {
+                    b.HasOne("dotnet.DAL.MealDAL", "Meal")
+                        .WithMany()
+                        .HasForeignKey("MealID");
+
+                    b.HasOne("dotnet.DAL.StepsDAL", "Steps")
+                        .WithMany()
+                        .HasForeignKey("StepsID");
+
+                    b.HasOne("dotnet.DAL.WorkoutCaloriesDAL", "WorkoutCalories")
+                        .WithMany()
+                        .HasForeignKey("WorkoutCaloriesWorkoutID");
+
+                    b.Navigation("Meal");
+
+                    b.Navigation("Steps");
+
+                    b.Navigation("WorkoutCalories");
                 });
 
             modelBuilder.Entity("dotnet.DAL.FollowingDAL", b =>
@@ -434,7 +473,7 @@ namespace dotnet.Migrations
             modelBuilder.Entity("dotnet.DAL.MealDAL", b =>
                 {
                     b.HasOne("dotnet.DAL.CaloriesDAL", "Calories")
-                        .WithOne("Meal")
+                        .WithOne()
                         .HasForeignKey("dotnet.DAL.MealDAL", "CaloriesID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -453,7 +492,7 @@ namespace dotnet.Migrations
             modelBuilder.Entity("dotnet.DAL.StepsDAL", b =>
                 {
                     b.HasOne("dotnet.DAL.CaloriesDAL", "Calories")
-                        .WithOne("Steps")
+                        .WithOne()
                         .HasForeignKey("dotnet.DAL.StepsDAL", "CaloriesID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -474,7 +513,7 @@ namespace dotnet.Migrations
             modelBuilder.Entity("dotnet.DAL.WorkoutCaloriesDAL", b =>
                 {
                     b.HasOne("dotnet.DAL.CaloriesDAL", "Calories")
-                        .WithOne("WorkoutCalories")
+                        .WithOne()
                         .HasForeignKey("dotnet.DAL.WorkoutCaloriesDAL", "CaloriesID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -507,15 +546,6 @@ namespace dotnet.Migrations
                     b.Navigation("Category");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("dotnet.DAL.CaloriesDAL", b =>
-                {
-                    b.Navigation("Meal");
-
-                    b.Navigation("Steps");
-
-                    b.Navigation("WorkoutCalories");
                 });
 
             modelBuilder.Entity("dotnet.DAL.GoalDAL", b =>

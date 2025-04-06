@@ -7,6 +7,6 @@ namespace dotnet.Models
         public int CategoryId { get; set; }
         public double Distance { get; set; }
         public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
+        public DateTime? EndDate { get; set; }
     }
 }

@@ -1,65 +1,113 @@
+using dotnet.DTOs;
+using dotnet.Helper;
 using dotnet.Models;
+using dotnet.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace dotnet.Controllers;
-
-[ApiController]
-[Route("api/workouts")]
-
-public class WorkoutController : ControllerBase
+namespace dotnet.Controllers
 {
-    private static List<Workout> workouts = new List<Workout>();
-
-    [HttpGet]
-    public ActionResult<IEnumerable<Workout>> Get()
+    [Route("api/workouts")]
+    [ApiController]
+    public class WorkoutController : ControllerBase
     {
-        return Ok(workouts);
-    }
+        private readonly IWorkoutService _workoutService;
+        private readonly ICategoryService _categoryService;
 
-    [HttpPost]
-    public ActionResult<Workout> Post(Workout workout)
-    {
-        if (workout == null)
+        public WorkoutController(IWorkoutService workoutService, ICategoryService categoryService)
         {
-            return BadRequest();
-        }    
-
-        workouts.Add(workout);
-        return Ok(workout);
-    }
-
-    [HttpPut("{id}")]
-    public ActionResult<Workout> Put(int id, Workout workout)
-    {
-        if (workout == null)
-        {
-            return BadRequest();
+            _workoutService = workoutService;
+            _categoryService = categoryService;
         }
 
-        var existingWorkout = workouts.Find(w => w.Id == id);
-        if (existingWorkout == null)
+        [HttpGet]
+        public async Task<IActionResult> GetAllWorkouts()
         {
-            return NotFound();
+            var workouts = await _workoutService.GetAllWorkoutsAsync();
+            return Ok(workouts.Select(WorkoutConverter.FromWorkoutToWorkoutDTO));
         }
 
-        existingWorkout.Distance = workout.Distance;
-        existingWorkout.StartDate = workout.StartDate;
-        existingWorkout.EndDate = workout.EndDate;
-        existingWorkout.CategoryId = workout.CategoryId;
-
-        return Ok(existingWorkout);
-        }
-
-    [HttpDelete]
-    public ActionResult<Workout> Delete(int id)
-    {
-        var existingWorkout = workouts.Find(w => w.Id == id);
-        if (existingWorkout == null)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetWorkoutById(int id)
         {
-            return NotFound();
+            var workout = await _workoutService.GetWorkoutByIdAsync(id);
+            if (workout == null)
+                return NotFound();
+
+            return Ok(WorkoutConverter.FromWorkoutToWorkoutDTO(workout));
         }
 
-        workouts.Remove(existingWorkout);
-        return Ok(existingWorkout);
+        [HttpPost]
+        public async Task<IActionResult> AddWorkout([FromBody] WorkoutDTO workoutDTO, int userId, int categoryId)
+        {
+            // var ongoingWorkout = await _workoutService.GetOngoingWorkoutForUser(userId);
+            // if (ongoingWorkout != null)
+            // {
+            //     return BadRequest(new { error = "❌You already have an active workout." });
+            // }
+
+            var workout = WorkoutConverter.FromWorkoutDTOToWorkout(workoutDTO, userId, categoryId);
+            var savedWorkout = await _workoutService.AddWorkoutAsync(workout);
+
+            var category = await _categoryService.GetCategoryByIdAsync(categoryId);
+            if (category == null)
+                return NotFound();
+
+            var savedWorkoutDto = new WorkoutDTO
+            {
+                Id = savedWorkout.Id,
+                Distance = savedWorkout.Distance,
+                StartDate = savedWorkout.StartDate,
+                EndDate = savedWorkout.EndDate,
+                Category = category.Name
+            };
+            Console.WriteLine("savedWorkout.Id: " + savedWorkout.Id);
+            return CreatedAtAction(nameof(GetWorkoutById), new { id = savedWorkout.Id }, savedWorkoutDto);
+        }
+        // http://localhost:5082/api/workouts?userId=41&categoryId=3
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateWorkout(int id, [FromBody] WorkoutDTO workoutDTO)
+        {
+            var existingWorkout = await _workoutService.GetWorkoutByIdAsync(id);
+            if (existingWorkout == null)
+                return NotFound();
+
+            existingWorkout.Distance = workoutDTO.Distance ?? 0.0;
+            existingWorkout.StartDate = workoutDTO.StartDate ?? DateTime.UtcNow;
+            existingWorkout.EndDate = workoutDTO.EndDate;
+
+            await _workoutService.UpdateWorkoutAsync(existingWorkout);
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteWorkout(int id)
+        {
+            var workout = await _workoutService.GetWorkoutByIdAsync(id);
+            if (workout == null)
+                return NotFound();
+
+            await _workoutService.DeleteWorkoutAsync(id);
+            return NoContent();
+        }
+
+        [HttpPut("{workoutId}/update-calories")]
+        public async Task<IActionResult> UpdateWorkoutCalories(int workoutId, [FromBody] UpdateWorkoutDTO updateWorkoutDto)
+        {
+            try
+            {
+                await _workoutService.UpdateWorkoutCaloriesAsync(workoutId, updateWorkoutDto.NewCalories, updateWorkoutDto.Distance ?? 0.0);
+                return Ok(new { message = "Calories and distance updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+        // http://localhost:5082/api/workouts/13/update-calories
+        // {
+        //     "newCalories": 500,
+        //     "distance": 13.5
+        // }
     }
 }
