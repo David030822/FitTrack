@@ -10,9 +10,9 @@ class WorkoutTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text(workout.category),
+      title: Text(workout.category ?? 'Unknown'),
       subtitle: Text(
-        'Start: ${formatDate(workout.startDate)}\nEnd: ${formatDate(workout.endDate)}',
+        'Start: ${formatDate(workout.startDate ?? DateTime.now())}\nEnd: ${formatDate(workout.endDate ?? DateTime.now())}',
       ),
       trailing: Text('${workout.distance} km\n${workout.calories} kCal'),
     );

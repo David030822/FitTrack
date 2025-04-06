@@ -43,19 +43,28 @@ public class AppDbContext : DbContext{
             .HasForeignKey(w => w.CategoryID)
             .OnDelete(DeleteBehavior.Restrict); // Prevent category deletion if workouts exist
 
-        modelBuilder.Entity<WorkoutCaloriesDAL>()
-        .HasKey(wc => new { wc.WorkoutID, wc.CaloriesID });  // Composite PK
+        // modelBuilder.Entity<WorkoutCaloriesDAL>()
+        //     .HasKey(wc => new { wc.WorkoutID, wc.CaloriesID });  // Composite PK
 
         // Define relationships
         modelBuilder.Entity<WorkoutCaloriesDAL>()
             .HasOne(wc => wc.Workout)
-            .WithMany()  // No navigation property in WorkoutDAL
-            .HasForeignKey(wc => wc.WorkoutID);
+            .WithOne(w => w.WorkoutCalories)
+            .HasForeignKey<WorkoutCaloriesDAL>(wc => wc.WorkoutID)
+            .OnDelete(DeleteBehavior.Cascade); // Delete WorkoutCalories if Workout is deleted
 
-        modelBuilder.Entity<WorkoutCaloriesDAL>()
-            .HasOne(wc => wc.Calories)
-            .WithMany()  // No navigation property in CaloriesDAL
-            .HasForeignKey(wc => wc.CaloriesID);
+        // modelBuilder.Entity<WorkoutCaloriesDAL>()
+        //     .HasOne(wc => wc.Calories)
+        //     .WithOne(c => c.WorkoutCalories)
+        //     .HasForeignKey<WorkoutCaloriesDAL>(wc => wc.CaloriesID)
+        //     .OnDelete(DeleteBehavior.Cascade); // Delete WorkoutCalories if Calories entry is deleted
+
+        modelBuilder.Entity<CaloriesDAL>()
+            .HasOne(c => c.WorkoutCalories)
+            .WithOne(wc => wc.Calories)
+            .HasForeignKey<WorkoutCaloriesDAL>(wc => wc.CaloriesID)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);  // Delete Calories if WorkoutCalories is deleted
 
         // One-to-One: Steps -> Calories
         modelBuilder.Entity<StepsDAL>()
