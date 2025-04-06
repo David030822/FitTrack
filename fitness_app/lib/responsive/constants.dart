@@ -3,8 +3,9 @@ import 'package:fitness_app/models/user.dart';
 import 'package:fitness_app/models/workout.dart';
 import 'package:flutter/material.dart';
 
-const String BASE_URL = 'http://192.168.0.142:5082';   // 1
+// const String BASE_URL = 'http://192.168.0.142:5082';   // 1
 // const String BASE_URL = 'http://192.168.0.226:5082';   // 2
+const String BASE_URL = 'https://db99-82-77-240-45.ngrok-free.app';   // 3
 
 var myDefaultBackgroundColor = Colors.grey[300];
 
@@ -14,13 +15,9 @@ var myAppBar = AppBar(
 
 var myDrawer = const MyDrawer();
 
-const List<String> workoutCategories = <String>[
-  'Running', 'Cycling', 'Walking',
-  'Hiking', 'Swimming', 'Yoga', 'Gym',
-  ];
-
 List<Workout> workouts = [
   Workout(
+    id: 1,
     category: 'Cycling',
     distance: 13.6,
     calories: 200,
@@ -28,6 +25,7 @@ List<Workout> workouts = [
     endDate: DateTime(2024, 8, 31, 8, 15),    // August 31, 2024, 8:15 AM
   ),
   Workout(
+    id: 2,
     category: 'Gym',
     distance: 0.0,
     calories: 300,
@@ -35,6 +33,7 @@ List<Workout> workouts = [
     endDate: DateTime(2024, 8, 31, 16, 15),    // August 31, 2024, 4:15 PM
   ),
   Workout(
+    id: 3,
     category: 'Running',
     distance: 5.2,
     calories: 400,
@@ -42,6 +41,7 @@ List<Workout> workouts = [
     endDate: DateTime(2024, 9, 1, 6, 45),    // September 1, 2024, 6:45 AM
   ),
   Workout(
+    id: 4,
     category: 'Swimming',
     distance: 1.0,
     calories: 300,
@@ -49,6 +49,7 @@ List<Workout> workouts = [
     endDate: DateTime(2024, 9, 2, 13, 15),   // September 2, 2024, 1:15 PM
   ),
   Workout(
+    id: 5,
     category: 'Hiking',
     distance: 8.7,
     calories: 350,
@@ -56,6 +57,7 @@ List<Workout> workouts = [
     endDate: DateTime(2024, 9, 3, 11, 30),   // September 3, 2024, 11:30 AM
   ),
   Workout(
+    id: 6,
     category: 'Yoga',
     distance: 0.0,
     calories: 150,
