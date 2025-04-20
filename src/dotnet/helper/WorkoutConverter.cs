@@ -16,7 +16,7 @@ namespace dotnet.Helper
                 Distance = workout.Distance,
                 StartDate = DateTime.SpecifyKind(workout.StartDate, DateTimeKind.Utc),
                 EndDate = workout.EndDate.HasValue 
-                    ? DateTime.SpecifyKind(workout.EndDate.Value, DateTimeKind.Utc) 
+                    ? DateTime.SpecifyKind(workout.EndDate.Value, DateTimeKind.Utc)
                     : null
             };
         }
@@ -43,7 +43,7 @@ namespace dotnet.Helper
                 Id = workout.Id,
                 Distance = workout.Distance,
                 StartDate = workout.StartDate,
-                EndDate = workout.EndDate
+                EndDate = workout.EndDate,                     // 🆕 or calculate here
             };
         }
 

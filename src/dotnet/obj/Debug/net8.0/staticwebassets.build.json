@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "8LzAwYlcHG1ijObJOhzH0snYuQPTictzPno/Y+JN8/Q=",
+  "Hash": "amZAxpS8VD/YurDQlP5YYVlZoYxE6wFgng5m6hVbfPE=",
   "Source": "dotnet",
   "BasePath": "_content/dotnet",
   "Mode": "Default",
@@ -1813,7 +1813,7 @@
         },
         {
           "Name": "Last-Modified",
-          "Value": "Fri, 04 Apr 2025 11:17:09 GMT"
+          "Value": "Sun, 06 Apr 2025 20:28:19 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -1858,7 +1858,7 @@
         },
         {
           "Name": "Last-Modified",
-          "Value": "Fri, 04 Apr 2025 11:17:09 GMT"
+          "Value": "Sun, 06 Apr 2025 20:28:19 GMT"
         },
         {
           "Name": "Cache-Control",

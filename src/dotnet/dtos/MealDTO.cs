@@ -1,9 +1,8 @@
-namespace dotnet.Models
+namespace dotnet.DTOs
 {
-    public class Meal
+    public class MealDTO
     {
         public int Id { get; set; }
-        public int UserId { get; set; }
         public string Name { get; set; }
         public string? Description { get; set; }
         public double Calories { get; set; }
