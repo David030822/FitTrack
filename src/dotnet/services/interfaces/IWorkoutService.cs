@@ -1,3 +1,4 @@
+using dotnet.DTOs;
 using dotnet.Models;
 
 namespace dotnet.Services
@@ -11,5 +12,7 @@ namespace dotnet.Services
         Task DeleteWorkoutAsync(int id);
         Task UpdateWorkoutCaloriesAsync(int workoutId, double newCalories, double distance);
         Task<Workout?> GetOngoingWorkoutForUser(int userId);
+        Task<IEnumerable<Workout>> GetWorkoutsByUserIdAsync(int userId);
+        Task<IEnumerable<WorkoutDTO>> GetWorkoutDTOsForUserAsync(int userId);
     }
 }

@@ -1,5 +1,6 @@
 using dotnet.DAL;
 using dotnet.Data;
+using dotnet.DTOs;
 using dotnet.Helper;
 using dotnet.Models;
 using Microsoft.EntityFrameworkCore;
@@ -169,6 +170,48 @@ namespace dotnet.Repositories
                 return null;
 
             return WorkoutConverter.FromWorkoutDALToWorkout(dalWorkout);
+        }
+
+        public async Task<IEnumerable<Workout>> GetWorkoutsByUserIdAsync(int userId)
+        {
+            var workouts = await _context.Workouts
+                .Include(w => w.Category)
+                .Where(w => w.UserID == userId)
+                .ToListAsync();
+
+            return workouts.Select(WorkoutConverter.FromWorkoutDALToWorkout);
+        }
+
+        public async Task<IEnumerable<WorkoutDTO>> GetWorkoutDTOsForUserAsync(int userId)
+        {
+            var workouts = await _context.Workouts
+                .Include(w => w.Category)
+                .Include(w => w.WorkoutCalories)
+                    .ThenInclude(wc => wc.Calories)
+                .Where(w => w.UserID == userId)
+                .ToListAsync();
+
+            foreach (var w in workouts)
+            {
+                Console.WriteLine($"👉 WorkoutID: {w.WorkoutID}, Category: {(w.Category == null ? "NULL" : w.Category.Name)}, Calories: {(w.WorkoutCalories == null ? "NULL" : w.WorkoutCalories.Calories.Amount.ToString())}");
+            }
+
+            return workouts.Select(w => new WorkoutDTO
+            {
+                Id = w.WorkoutID,
+                Distance = w.Distance,
+                StartDate = w.StartDate,
+                EndDate = w.EndDate,
+                Category = w.Category?.Name ?? "Unknown",
+                Calories = Math.Round(w.WorkoutCalories?.Calories?.Amount ?? 0, 2),  // Two decimals,
+                Duration = w.EndDate.HasValue
+                    ? (w.EndDate.Value - w.StartDate).ToString(@"hh\:mm\:ss")
+                    : null,
+
+                AvgPace = (w.EndDate.HasValue && w.Distance > 0)
+                    ? $"{(w.EndDate.Value - w.StartDate).TotalMinutes / w.Distance:0.00} min/km"
+                    : null
+            }).ToList();
         }
     }
 }

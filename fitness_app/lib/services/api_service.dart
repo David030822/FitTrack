@@ -195,6 +195,8 @@ class ApiService {
       body: jsonEncode({}),
     );
 
+    print(response.body);
+
     if (response.statusCode == 400 || response.statusCode == 409) {
       final decoded = jsonDecode(response.body);
       throw Exception(decoded['error'] ?? 'Could not start workout.');
@@ -206,9 +208,12 @@ class ApiService {
       try {
         final data = jsonDecode(response.body);
         final workout = Workout.fromJson(data);
+        print('✅ Workout started! ID: ${workout.id}');
         return workout.id;
       } catch (e) {
-        print(response.body);
+        print('🔥 Failed to decode workout: $e');
+        print('🧾 Raw response: ${response.body}');
+        return null; // <- critical
       }
     } else {
       print('Failed to start workout: ${response.body}');
@@ -220,11 +225,15 @@ class ApiService {
     required int workoutId,
     required double distance,
     required double caloriesBurned,
+    required String duration,
+    required String avgPace
   }) async {
     print("⚙️ Sending finishWorkout request...");
     final body = jsonEncode({
       'newCalories': caloriesBurned,
       'distance': distance,
+      'duration': duration,
+      'avgPace': avgPace,
     });
     print("Sending to backend: $body");
 
@@ -256,6 +265,24 @@ class ApiService {
       print('❌ Workout not found.');
     } else {
       print('❌ Failed to delete workout: ${response.body}');
+    }
+  }
+
+  static Future<List<Workout>> getWorkoutsForCurrentUser(int userId) async {
+    final url = Uri.parse('$baseUrl/api/workouts/user/$userId'); // adjust this if needed
+
+    final response = await http.get(url, headers: {
+      'Content-Type': 'application/json',
+    });
+
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonData = json.decode(response.body);
+
+      // Convert JSON list to List<Workout>
+      return jsonData.map((json) => Workout.fromJson(json)).toList();
+    } else {
+      print('❌ Failed to fetch workouts: ${response.statusCode} - ${response.body}');
+      return [];
     }
   }
 }

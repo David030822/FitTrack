@@ -410,8 +410,20 @@ class _TrainingPageState extends State<TrainingPage> {
                                             // print("🔵 YES BUTTON TAPPED");
                                               // save data to db...
                                               final elapsedSeconds = _stopWatchTimer.secondTime.value;
-                                              final caloriesBurned = 0.1 * elapsedSeconds; // or use your logic
+                                              final caloriesBurned = 0.1 * elapsedSeconds;
                                               final distance = elapsedSeconds * 0.005;
+
+                                              final duration = Duration(seconds: elapsedSeconds);
+                                              final formattedDuration = "${duration.inHours.toString().padLeft(2, '0')}:"
+                                                                        "${(duration.inMinutes % 60).toString().padLeft(2, '0')}:"
+                                                                        "${(duration.inSeconds % 60).toString().padLeft(2, '0')}";
+
+                                              final distanceKm = distance;
+                                              final elapsedMinutes = elapsedSeconds / 60;
+                                              final avgPace = distanceKm > 0 ? elapsedMinutes / distanceKm : 0;
+                                              final paceMinutes = avgPace.floor();
+                                              final paceSeconds = ((avgPace - paceMinutes) * 60).round();
+                                              final formattedPace = "${paceMinutes}:${paceSeconds.toString().padLeft(2, '0')} /km";
 
                                               final api = ApiService();
                                               print("Current workout ID: $_currentWorkoutId");
@@ -424,6 +436,8 @@ class _TrainingPageState extends State<TrainingPage> {
                                                   workoutId: _currentWorkoutId!,
                                                   distance: distance,
                                                   caloriesBurned: caloriesBurned,
+                                                  duration: formattedDuration,
+                                                  avgPace: formattedPace,
                                                 );
 
                                                 if (success) {
