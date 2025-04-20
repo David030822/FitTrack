@@ -1,3 +1,4 @@
+using dotnet.DTOs;
 using dotnet.Models;
 using dotnet.Repositories;
 
@@ -47,6 +48,16 @@ namespace dotnet.Services
         public async Task<Workout?> GetOngoingWorkoutForUser(int userId)
         {
             return await _workoutRepository.GetOngoingWorkoutForUser(userId);
+        }
+
+        public async Task<IEnumerable<Workout>> GetWorkoutsByUserIdAsync(int userId)
+        {
+            return await _workoutRepository.GetWorkoutsByUserIdAsync(userId);
+        }
+
+        public async Task<IEnumerable<WorkoutDTO>> GetWorkoutDTOsForUserAsync(int userId)
+        {
+            return await _workoutRepository.GetWorkoutDTOsForUserAsync(userId);
         }
     }
 }
