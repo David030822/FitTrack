@@ -36,6 +36,13 @@ namespace dotnet.Controllers
             return Ok(WorkoutConverter.FromWorkoutToWorkoutDTO(workout));
         }
 
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetWorkoutsByUserId(int userId)
+        {
+            var workouts = await _workoutService.GetWorkoutDTOsForUserAsync(userId);
+            return Ok(workouts);
+        }
+
         [HttpPost]
         public async Task<IActionResult> AddWorkout([FromBody] WorkoutDTO workoutDTO, int userId, int categoryId)
         {
@@ -94,6 +101,10 @@ namespace dotnet.Controllers
         [HttpPut("{workoutId}/update-calories")]
         public async Task<IActionResult> UpdateWorkoutCalories(int workoutId, [FromBody] UpdateWorkoutDTO updateWorkoutDto)
         {
+            Console.WriteLine($"🟢 NewCalories: {updateWorkoutDto.NewCalories}");
+            Console.WriteLine($"🟢 Distance: {updateWorkoutDto.Distance}");
+            Console.WriteLine($"🟢 Duration: {updateWorkoutDto.Duration}");
+            Console.WriteLine($"🟢 AvgPace: {updateWorkoutDto.AvgPace}");
             try
             {
                 await _workoutService.UpdateWorkoutCaloriesAsync(workoutId, updateWorkoutDto.NewCalories, updateWorkoutDto.Distance ?? 0.0);

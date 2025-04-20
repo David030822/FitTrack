@@ -32,6 +32,6 @@ namespace dotnet.DAL
         public WorkoutCategoryDAL Category { get; set; }  // Relationship to WorkoutCategoryDAL
 
         // One-to-One Relationship with WorkoutCalories
-        public WorkoutCaloriesDAL WorkoutCalories { get; set; } 
+        public WorkoutCaloriesDAL WorkoutCalories { get; set; }
     }
 }
