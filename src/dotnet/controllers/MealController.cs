@@ -34,6 +34,13 @@ namespace dotnet.Controllers
             return Ok(mealDto);
         }
 
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetMealsByUserId(int userId)
+        {
+            var workouts = await _service.GetMealDTOsForUserAsync(userId);
+            return Ok(workouts);
+        }
+
         [HttpPost("create")]
         public async Task<IActionResult> CreateMeal([FromBody] MealDTO mealDto, int userId)
         {

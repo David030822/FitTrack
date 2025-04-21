@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 // const String BASE_URL = 'http://192.168.0.142:5082';   // 1
 // const String BASE_URL = 'http://192.168.0.226:5082';   // 2
-const String BASE_URL = 'https://54fb-5-15-2-0.ngrok-free.app';   // 3
+const String BASE_URL = 'https://99de-82-77-240-4.ngrok-free.app';   // 3
 
 var myDefaultBackgroundColor = Colors.grey[300];
 

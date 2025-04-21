@@ -49,5 +49,10 @@ namespace dotnet.Services
         {
             await _repository.DeleteMealAsync(id);
         }
+
+        public async Task<IEnumerable<MealDTO>> GetMealDTOsForUserAsync(int userId)
+        {
+            return await _repository.GetMealDTOsForUserAsync(userId);
+        }
     }
 }

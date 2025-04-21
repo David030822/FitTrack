@@ -1,7 +1,9 @@
 import 'package:fitness_app/components/food_tile.dart';
 import 'package:fitness_app/components/my_text_field.dart';
 import 'package:fitness_app/database/food_database.dart';
-import 'package:fitness_app/models/food.dart';
+import 'package:fitness_app/models/meal.dart';
+import 'package:fitness_app/services/api_service.dart';
+import 'package:fitness_app/services/auth_service.dart';
 import 'package:fitness_app/util/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -15,9 +17,12 @@ class FoodPage extends StatefulWidget {
 }
 
 class _FoodPageState extends State<FoodPage> {
+  final api = ApiService();
   final _foodNameController = TextEditingController();
+  final _foodDescriptionController = TextEditingController();
   final _foodCaloriesController = TextEditingController();
   final _caloriesController = TextEditingController();
+  List<Meal> _userMeals = [];
 
   Future<void> _fetchData() async {
     await context.read<FoodDatabase>().fetchAppSettings();
@@ -26,6 +31,7 @@ class _FoodPageState extends State<FoodPage> {
 
   @override
   void initState() {
+    _loadMeals();
     _fetchData();
     super.initState();
   }
@@ -33,9 +39,40 @@ class _FoodPageState extends State<FoodPage> {
   @override
   void dispose() {
     _foodNameController.dispose();
+    _foodDescriptionController.dispose();
     _foodCaloriesController.dispose();
     _caloriesController.dispose();
     super.dispose();
+  }
+
+  void showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
+  void showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.green),
+    );
+  }
+
+  Future<void> _loadMeals() async {
+    final token = await AuthService.getToken();
+    if (token == null) {
+      throw Exception("User is not logged in");
+    }
+
+    final userId = await AuthService.getUserIdFromToken(token);
+    if (userId == null) {
+      throw Exception("Failed to get User ID");
+    }
+
+    List<Meal> meals = await ApiService.getMealsForCurrentUser(userId);
+
+    setState(() {
+      _userMeals = meals;
+    });
   }
 
   // create new food
@@ -52,6 +89,12 @@ class _FoodPageState extends State<FoodPage> {
               ),
             ),
             TextField(
+              controller: _foodDescriptionController,
+              decoration: const InputDecoration(
+                hintText: 'Short description',
+              ),
+            ),
+            TextField(
               controller: _foodCaloriesController,
               decoration: const InputDecoration(
                 hintText: 'Number of calories',
@@ -62,19 +105,36 @@ class _FoodPageState extends State<FoodPage> {
         actions: [
           // save button
           MaterialButton(
-            onPressed: () {
+            onPressed: () async {
               // get the new food name & calories
               String newFoodName = _foodNameController.text;
+              String newFoodDescription = _foodDescriptionController.text;
               double newFoodCalories = double.parse(_foodCaloriesController.text);
 
               // save to db
-              context.read<FoodDatabase>().addFood(newFoodName, newFoodCalories);
+              try {
+                final mealId = await api.addMeal(newFoodName, newFoodDescription, newFoodCalories);
 
+                print("Meal ID after insertion: $mealId");
+
+                if (mealId != null) {
+                  print('✅Meal added successfully!');
+                  showSuccess('Meal logged!');
+                } else {
+                  print('❌Failed to log meal');
+                  showError('Failed to log meal!');
+                }
+              } catch(e) {
+                print('❌Failed to add new meal: $e');
+                showError(e.toString());
+              }
+              
               // pop box
               Navigator.pop(context);
 
               // clear controllers
               _foodNameController.clear();
+              _foodDescriptionController.clear();
               _foodCaloriesController.clear();
             },
             child: const Text('Save'),
@@ -88,6 +148,7 @@ class _FoodPageState extends State<FoodPage> {
 
               // clear controllers
               _foodNameController.clear();
+              _foodDescriptionController.clear();
               _foodCaloriesController.clear();
             },
             child: const Text('Cancel'),
@@ -109,10 +170,11 @@ class _FoodPageState extends State<FoodPage> {
   }
 
   // edit food box
-  void editFoodBox(Food food) {
+  void editFoodBox(Meal meal) {
     // set the controller's text to the food's current name & calories
-    _foodNameController.text = food.name;
-    _foodCaloriesController.text = food.calories.toString();
+    _foodNameController.text = meal.name;
+    _foodDescriptionController.text = meal.description ?? "";
+    _foodCaloriesController.text = meal.calories.toString();
 
     showDialog(
       context: context,
@@ -123,6 +185,9 @@ class _FoodPageState extends State<FoodPage> {
               controller: _foodNameController,
             ),
             TextField(
+              controller: _foodDescriptionController,
+            ),
+            TextField(
               controller: _foodCaloriesController,
             ),
           ],
@@ -130,19 +195,34 @@ class _FoodPageState extends State<FoodPage> {
         actions: [
           // save button
           MaterialButton(
-            onPressed: () {
+            onPressed: () async {
               // get the new food name
               String newFoodName = _foodNameController.text;
+              String newFoodDescription = _foodDescriptionController.text;
               double newFoodCalories = double.parse(_foodCaloriesController.text);
 
               // save to db
-              context.read<FoodDatabase>().updateFood(food.id, newFoodName, newFoodCalories);
-
+              try {
+                bool ok = await api.updateMeal(meal.id, newFoodName, newFoodDescription, newFoodCalories);
+                print(ok);
+                if (ok) {
+                  print('✅Meal updated successfully!');
+                  showSuccess('Meal updated!');
+                } else {
+                  print('❌Failed to update meal!');
+                  showError('Failed to update meal!');
+                }
+              } catch (e) {
+                print('❌Failed to add new meal: $e');
+                showError(e.toString());
+              }
+              
               // pop box
               Navigator.pop(context);
 
               // clear controllers
               _foodNameController.clear();
+              _foodDescriptionController.clear();
               _foodCaloriesController.clear();
             },
             child: const Text('Save'),
@@ -156,6 +236,7 @@ class _FoodPageState extends State<FoodPage> {
 
               // clear controllers
               _foodNameController.clear();
+              _foodDescriptionController.clear();
               _foodCaloriesController.clear();
             },
             child: const Text('Cancel'),
@@ -166,7 +247,7 @@ class _FoodPageState extends State<FoodPage> {
   }
 
   // delete food box
-  void deleteFoodBox(Food food) {
+  void deleteFoodBox(int id) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -174,9 +255,18 @@ class _FoodPageState extends State<FoodPage> {
         actions: [
           // delete button
           MaterialButton(
-            onPressed: () {
+            onPressed: () async {
               // delete from db
-              context.read<FoodDatabase>().deleteFood(food.id);
+              try {
+                bool ok = await api.deleteMeal(id);
+                if (ok) {
+                  showSuccess('Meal deleted!');
+                } else {
+                  showError('Failed to delete meal!');
+                }
+              } catch (e) {
+                showError(e.toString());
+              }
 
               // pop box
               Navigator.pop(context);
@@ -210,155 +300,155 @@ class _FoodPageState extends State<FoodPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: createNewFood,
         elevation: 0,
-        backgroundColor: Theme.of(context).colorScheme.secondary,
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         child: const Icon(Icons.add),
       ),
-      body: ListView(
-        children: [
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(
-                  'Food Page',
-                  style: GoogleFonts.dmSerifText(
-                    fontSize: 48,
-                    color: Theme.of(context).colorScheme.inversePrimary,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    'Food Page',
+                    style: GoogleFonts.dmSerifText(
+                      fontSize: 48,
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 25),
-                Padding(
-                  padding: const EdgeInsets.only(right: 20.0),
-                  child: Row(
+                  const SizedBox(height: 25),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 20.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: MyTextField(
+                            controller: _caloriesController,
+                            hintText: 'Enter desired daily intake',
+                            obscureText: false,
+                          ),
+                        ),
+                        CustomButton(
+                          color: Theme.of(context).colorScheme.tertiary,
+                          textColor: Theme.of(context).colorScheme.outline,
+                          onPressed: setDailyGoal,
+                          label: 'Confirm',
+                        ),
+                      ],
+                    ),
+                  ),
+        
+                  const SizedBox(height: 20),
+        
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Expanded(
-                        child: MyTextField(
-                          controller: _caloriesController,
-                          hintText: 'Enter desired daily intake',
-                          obscureText: false,
+                      Text(
+                        'Calories to reach today: ',
+                        style: GoogleFonts.dmSerifText(
+                          fontSize: 24,
+                          color: Theme.of(context).colorScheme.inversePrimary,
                         ),
                       ),
-                      CustomButton(
-                        color: Theme.of(context).colorScheme.tertiary,
-                        textColor: Theme.of(context).colorScheme.outline,
-                        onPressed: setDailyGoal,
-                        label: 'Confirm',
+                      Text(
+                        foodDatabase.appSettings.dailyIntakeGoal == 0 
+                          ? 'No goal set' 
+                          : foodDatabase.appSettings.dailyIntakeGoal.toString(),
+                        style: GoogleFonts.dmSerifText(
+                          fontSize: 24,
+                          color: Theme.of(context).colorScheme.inversePrimary,
+                        ),
                       ),
                     ],
                   ),
-                ),
-
-                const SizedBox(height: 20),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Calories to reach today: ',
-                      style: GoogleFonts.dmSerifText(
-                        fontSize: 24,
-                        color: Theme.of(context).colorScheme.inversePrimary,
+        
+                  const SizedBox(height: 15),
+        
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Total intake until now: ',
+                        style: GoogleFonts.dmSerifText(
+                          fontSize: 24,
+                          color: Theme.of(context).colorScheme.inversePrimary,
+                        ),
                       ),
-                    ),
-                    Text(
-                      foodDatabase.appSettings.dailyIntakeGoal == 0 
-                        ? 'No goal set' 
-                        : foodDatabase.appSettings.dailyIntakeGoal.toString(),
-                      style: GoogleFonts.dmSerifText(
-                        fontSize: 24,
-                        color: Theme.of(context).colorScheme.inversePrimary,
+                      Text(
+                        foodDatabase.appSettings.totalIntake.toString(),
+                        style: GoogleFonts.dmSerifText(
+                          fontSize: 24,
+                          color: Theme.of(context).colorScheme.inversePrimary,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 15),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Total intake until now: ',
-                      style: GoogleFonts.dmSerifText(
-                        fontSize: 24,
-                        color: Theme.of(context).colorScheme.inversePrimary,
-                      ),
-                    ),
-                    Text(
-                      foodDatabase.appSettings.totalIntake.toString(),
-                      style: GoogleFonts.dmSerifText(
-                        fontSize: 24,
-                        color: Theme.of(context).colorScheme.inversePrimary,
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 15),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Remaining: ',
-                      style: GoogleFonts.dmSerifText(
-                        fontSize: 24,
-                        color: Theme.of(context).colorScheme.inversePrimary,
-                      ),
-                    ),
-                    Consumer<FoodDatabase>(
-                      builder: (context, foodDatabase, child) {
-                        final caloriesRemaining = foodDatabase.appSettings.dailyIntakeGoal - foodDatabase.appSettings.totalIntake;
-                        return Text(
-                          caloriesRemaining == 0
-                            ? 'Done for today'
-                            : caloriesRemaining.toString(),
-                          style: GoogleFonts.dmSerifText(
-                            fontSize: 24,
-                            color: Theme.of(context).colorScheme.inversePrimary,
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 20),
-
-                Text(
-                  'My meals today:',
-                  style: GoogleFonts.dmSerifText(
-                    fontSize: 24,
-                    color: Theme.of(context).colorScheme.inversePrimary,
+                    ],
                   ),
-                ),
-              ],
+        
+                  const SizedBox(height: 15),
+        
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Remaining: ',
+                        style: GoogleFonts.dmSerifText(
+                          fontSize: 24,
+                          color: Theme.of(context).colorScheme.inversePrimary,
+                        ),
+                      ),
+                      Consumer<FoodDatabase>(
+                        builder: (context, foodDatabase, child) {
+                          final caloriesRemaining = foodDatabase.appSettings.dailyIntakeGoal - foodDatabase.appSettings.totalIntake;
+                          return Text(
+                            caloriesRemaining == 0
+                              ? 'Done for today'
+                              : caloriesRemaining.toString(),
+                            style: GoogleFonts.dmSerifText(
+                              fontSize: 24,
+                              color: Theme.of(context).colorScheme.inversePrimary,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+        
+                  const SizedBox(height: 20),
+        
+                  Text(
+                    'My meals today:',
+                    style: GoogleFonts.dmSerifText(
+                      fontSize: 24,
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          _buildFoodList(),
-        ],
+            _buildFoodList(),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildFoodList() {
-    final foodDatabase = context.watch<FoodDatabase>();
-    final currentFoods = foodDatabase.currentFoods;
-
-    return ListView.builder(
-      itemCount: currentFoods.length,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemBuilder: (context, index) {
-        final food = currentFoods[index];
-
-        return FoodTile(
-          food: food,
-          editFood: (context) => editFoodBox(food),
-          deleteFood: (context) => deleteFoodBox(food),
-        );
-      }
-    );
+    return _userMeals.isEmpty
+        ? const Center(child: Text("No meals logged yet."))
+        : ListView.builder(
+            shrinkWrap: true, // important when nested
+            physics: const NeverScrollableScrollPhysics(), // prevents nested scrolling
+            itemCount: _userMeals.length,
+            itemBuilder: (context, index) {
+              Meal meal = _userMeals[index];
+              return FoodTile(
+                meal: meal,
+                deleteMeal: (context) => deleteFoodBox(meal.id),
+                editMeal: (context) => editFoodBox(meal),
+              );
+            },
+          );
   }
 }

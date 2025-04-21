@@ -10,5 +10,6 @@ namespace dotnet.Services
         Task<Meal> AddMealAsync(Meal meal);
         Task UpdateMealAsync(Meal meal);
         Task DeleteMealAsync(int id);
+        Task<IEnumerable<MealDTO>> GetMealDTOsForUserAsync(int userId);
     }
 }

@@ -2,6 +2,7 @@
 using dotnet.Converters;
 using dotnet.DAL;
 using dotnet.Data;
+using dotnet.DTOs;
 using dotnet.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -76,6 +77,27 @@ namespace dotnet.Repositories
                 _context.Meal.Remove(meal);
                 await _context.SaveChangesAsync();
             }
+        }
+
+        public async Task<IEnumerable<MealDTO>> GetMealDTOsForUserAsync(int userId)
+        {
+            var meals = await _context.Meal
+                .Include(m => m.Calories)
+                .Where(m => m.UserID == userId)
+                .ToListAsync();
+
+            foreach (var m in meals)
+            {
+                Console.WriteLine($"👉 MealID: {m.MealID}, Calories: {(m.Calories == null ? "NULL" : m.Calories.Amount.ToString())}");
+            }
+
+            return meals.Select(m => new MealDTO
+            {
+                Id = m.MealID,
+                Name = m.Name,
+                Description = m.Description,
+                Calories = m.Calories.Amount
+            }).ToList();
         }
     }
 }

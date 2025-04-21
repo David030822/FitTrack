@@ -1,17 +1,12 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
-
-import 'dart:convert';
-
 import 'package:fitness_app/components/my_text_field.dart';
 import 'package:fitness_app/database/food_database.dart';
-import 'package:fitness_app/pages/home_page.dart';
 import 'package:fitness_app/responsive/constants.dart';
 import 'package:fitness_app/services/api_service.dart';
 import 'package:fitness_app/util/custom_button.dart';
 import 'package:fitness_app/util/my_dropdown_button.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
 
@@ -356,9 +351,15 @@ class _TrainingPageState extends State<TrainingPage> {
                                           onPressed: () async {
                                             final api = ApiService();
                                             if (_currentWorkoutId != null) {
-                                              await api.deleteWorkout(_currentWorkoutId!);
-                                              print("✅Deleted workout with ID: $_currentWorkoutId successfully!");
-
+                                              bool ok = await api.deleteWorkout(_currentWorkoutId!);
+                                              if (ok) {
+                                                print("✅Deleted workout with ID: $_currentWorkoutId successfully!");
+                                                showSuccess('Workout data reset!');
+                                              } else {
+                                                print('❌Failed to delete workout!');
+                                                showError('Failed to reset workout!');
+                                              }
+                                              
                                               if (mounted) {
                                                 setState(() {
                                                   _currentWorkoutId = null;

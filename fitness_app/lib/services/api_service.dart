@@ -1,3 +1,4 @@
+import 'package:fitness_app/models/meal.dart';
 import 'package:fitness_app/models/workout.dart';
 import 'package:fitness_app/responsive/constants.dart';
 import 'package:flutter/widgets.dart';
@@ -252,7 +253,7 @@ class ApiService {
     }
   }
 
-  Future<void> deleteWorkout(int workoutId) async {
+  Future<bool> deleteWorkout(int workoutId) async {
     final url = Uri.parse('$baseUrl/api/workouts/$workoutId');
 
     final response = await http.delete(url, headers: {
@@ -261,10 +262,13 @@ class ApiService {
 
     if (response.statusCode == 204) {
       print('🗑️ Workout deleted successfully.');
+      return true;
     } else if (response.statusCode == 404) {
       print('❌ Workout not found.');
+      return false;
     } else {
       print('❌ Failed to delete workout: ${response.body}');
+      return false;
     }
   }
 
@@ -283,6 +287,130 @@ class ApiService {
     } else {
       print('❌ Failed to fetch workouts: ${response.statusCode} - ${response.body}');
       return [];
+    }
+  }
+
+  // handling meals
+  Future<int?> addMeal(String name, String description, double calories) async {
+    final token = await AuthService.getToken();
+    if (token == null) {
+      throw Exception("User is not logged in");
+    }
+
+    final userId = await AuthService.getUserIdFromToken(token);
+    if (userId == null) {
+      return null;
+    }
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/meals/create?userId=$userId'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        "name": name,
+        "description": description,
+        "calories": calories
+      }),
+    );
+
+    print(response.body);
+
+    if (response.statusCode == 400 || response.statusCode == 409) {
+      final decoded = jsonDecode(response.body);
+      throw Exception(decoded['error'] ?? 'Could not add new meal.');
+    }
+
+    if (response.statusCode == 201) {
+      print('🔥 Response body: ${response.body}');
+
+      try {
+        final data = jsonDecode(response.body);
+        final meal = Meal.fromJson(data);
+        print('✅ Meal added! ID: ${meal.id}');
+        return meal.id;
+      } catch (e) {
+        print('🔥 Failed to decode meal: $e');
+        print('🧾 Raw response: ${response.body}');
+        return null; // <- critical
+      }
+    } else {
+      print('Failed to add meal: ${response.body}');
+      return null;
+    }
+  }
+
+  static Future<List<Meal>> getMealsForCurrentUser(int userId) async {
+    final url = Uri.parse('$baseUrl/api/meals/user/$userId');
+
+    final response = await http.get(url, headers: {
+      'Content-Type': 'application/json',
+    });
+
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonData = json.decode(response.body);
+
+      // Convert JSON list to List<Meal>
+      return jsonData.map((json) => Meal.fromJson(json)).toList();
+    } else {
+      print('❌ Failed to fetch meals: ${response.statusCode} - ${response.body}');
+      return [];
+    }
+  }
+
+  Future<bool> updateMeal(int id, String name, String description, double calories) async {
+    final token = await AuthService.getToken();
+    if (token == null) {
+      throw Exception("User is not logged in");
+    }
+
+    final userId = await AuthService.getUserIdFromToken(token);
+    if (userId == null) {
+      print('❌User ID is NULL!');
+      return false;
+    }
+
+    final response = await http.put(
+      Uri.parse('$baseUrl/api/meals/update/$id'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        "name": name,
+        "description": description,
+        "calories": calories
+      }),
+    );
+
+    print(response.body);
+
+    if (response.statusCode == 400 || response.statusCode == 409) {
+      final decoded = jsonDecode(response.body);
+      print(decoded['error'] ?? 'Could not update meal.');
+      return false;
+    }
+
+    if (response.statusCode == 204) {
+      print('✅ Meal updated successfully!');
+      return true;
+      } else {
+      print('❌Failed to update meal!');
+      return false;
+    }
+  }
+
+  Future<bool> deleteMeal(int mealId) async {
+    final url = Uri.parse('$baseUrl/api/meals/delete/$mealId');
+
+    final response = await http.delete(url, headers: {
+      'Content-Type': 'application/json',
+    });
+
+    if (response.statusCode == 204) {
+      print('🗑️ Meal deleted successfully.');
+      return true;
+    } else if (response.statusCode == 404) {
+      print('❌ Meal not found.');
+      return false;
+    } else {
+      print('❌ Failed to delete meal: ${response.body}');
+      return false;
     }
   }
 }

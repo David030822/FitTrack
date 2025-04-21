@@ -21,6 +21,18 @@ class _AchievementsPageState extends State<AchievementsPage> {
     _loadWorkouts(); // load data when page starts
   }
 
+  void showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
+  void showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.green),
+    );
+  }
+
   Future<void> _loadWorkouts() async {
     final token = await AuthService.getToken();
     if (token == null) {
@@ -49,14 +61,20 @@ class _AchievementsPageState extends State<AchievementsPage> {
           MaterialButton(
             onPressed: () async {
               // delete from db
-              final apiService = ApiService();
-              await apiService.deleteWorkout(workoutId);
+              try {
+                final apiService = ApiService();
+                bool ok = await apiService.deleteWorkout(workoutId);
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Workout deleted ✅")),
-              );
+                if (ok) {
+                  showSuccess('Workout deleted!');
+                } else {
+                  showError('Failed to delete workout!');
+                }
+              } catch (e) {
+                showError(e.toString());
+              }
 
-              // pop box
+              // pop 
               Navigator.pop(context);
             },
             child: const Text('Delete'),
