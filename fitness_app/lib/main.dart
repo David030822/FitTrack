@@ -2,7 +2,6 @@
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:fitness_app/api/firebase_api.dart';
-import 'package:fitness_app/database/food_database.dart';
 import 'package:fitness_app/database/goal_database.dart';
 import 'package:fitness_app/firebase_options.dart';
 import 'package:fitness_app/network/apiclient.dart';
@@ -36,18 +35,13 @@ Future main() async {
   // initialize databases
   await GoalDatabase.initialize();
   await GoalDatabase().saveFirstLaunchDate();
-  await FoodDatabase.initialize();
 
   FlutterNativeSplash.removeAfter(initialization);
 
   runApp(
     MultiProvider(
       providers: [
-        // Food provider
-        ChangeNotifierProvider(create: (context) => FoodDatabase()),
-
         ChangeNotifierProvider(create: (context) => userData),
-
 
         // Goal provider
         ChangeNotifierProvider(create: (context) => GoalDatabase()),

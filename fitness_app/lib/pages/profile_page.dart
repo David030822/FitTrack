@@ -145,7 +145,7 @@ class _ProfilePageState extends State<ProfilePage> {
       File imageFile = File(pickedFile.path);
 
       // Upload the selected image
-      String? uploadedImageUrl = await _uploadProfileImage(imageFile);
+      await _uploadProfileImage(imageFile);
     }
   }
 

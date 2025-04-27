@@ -3,7 +3,6 @@
 import 'package:fitness_app/components/my_text_field.dart';
 import 'package:fitness_app/components/square_tile.dart';
 import 'package:fitness_app/components/streak_icon.dart';
-import 'package:fitness_app/database/food_database.dart';
 import 'package:fitness_app/models/calories_goals.dart';
 import 'package:fitness_app/models/weather_model.dart';
 import 'package:fitness_app/pages/training_page.dart';
@@ -16,7 +15,6 @@ import 'package:lottie/lottie.dart';
 import 'dart:async';
 import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:provider/provider.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -359,7 +357,7 @@ class _MainPageState extends State<MainPage> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         elevation: 2,
                         child: Padding(
-                          padding: const EdgeInsets.all(16.0),
+                          padding: const EdgeInsets.all(10.0),
                           child: Column(
                             children: [
                               _buildInfoRow('Today\'s goal :', overallGoal == null ? 'No goal set' : overallGoal!.toStringAsFixed(1)),
@@ -468,8 +466,8 @@ class _MainPageState extends State<MainPage> {
                                       color: Theme.of(context).colorScheme.inversePrimary,
                                     ),
                                   ),
-                                  Consumer<FoodDatabase>(
-                                    builder: (context, foodDatabase, child) {
+                                  Builder(
+                                    builder: (context) {
                                       final caloriesRemaining = (overallGoal ?? 0) - ((totalIntake ?? 0) - (totalBurnt ?? 0));
                                       return Text(
                                         caloriesRemaining == 0
