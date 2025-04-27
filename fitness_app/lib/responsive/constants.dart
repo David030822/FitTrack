@@ -3,9 +3,9 @@ import 'package:fitness_app/models/user.dart';
 import 'package:fitness_app/models/workout.dart';
 import 'package:flutter/material.dart';
 
-// const String BASE_URL = 'http://192.168.0.142:5082';   // 1
+const String BASE_URL = 'http://192.168.0.142:5082';   // 1
 // const String BASE_URL = 'http://192.168.0.226:5082';   // 2
-const String BASE_URL = 'https://3e19-2a02-2f09-f10b-4800-5dd2-d21f-eddc-19bf.ngrok-free.app';   // 3
+// const String BASE_URL = 'https://7661-2a02-2f09-f10b-4800-c481-de0f-6252-48a5.ngrok-free.app';   // 3
 
 var myDefaultBackgroundColor = Colors.grey[300];
 

@@ -163,7 +163,6 @@ namespace dotnet.Repositories
         public async Task<CaloriesGoalsDTO> GetStreaksAsync(int userId)
         {
             var todayUtc = DateTime.UtcNow.Date;
-            var tomorrowUtc = todayUtc.AddDays(1);
 
             var userGoals = await _context.CaloriesGoals
                 .FirstOrDefaultAsync(g => g.UserID == userId);
@@ -171,19 +170,42 @@ namespace dotnet.Repositories
             if (userGoals == null)
                 return null;
 
-            // Fetch today's total intake and burn
             var totalIntake = await GetDailyIntakeAsync(userId, todayUtc);
             var totalBurn = await GetDailyCaloriesBurnedAsync(userId, todayUtc);
 
-            // Check if goals were met
             bool intakeGoalMet = userGoals.IntakeGoal.HasValue && totalIntake >= userGoals.IntakeGoal.Value;
             bool burnGoalMet = userGoals.BurnGoal.HasValue && totalBurn >= userGoals.BurnGoal.Value;
 
-            // Update streaks
-            userGoals.IntakeStreak = intakeGoalMet ? (userGoals.IntakeStreak ?? 0) + 1 : 0;
-            userGoals.BurnStreak = burnGoalMet ? (userGoals.BurnStreak ?? 0) + 1 : 0;
+            // Update streaks ONLY if not already updated today
+            if (intakeGoalMet)
+            {
+                if (userGoals.LastIntakeStreakUpdate == null || userGoals.LastIntakeStreakUpdate.Value.Date < todayUtc)
+                {
+                    userGoals.IntakeStreak = (userGoals.IntakeStreak ?? 0) + 1;
+                    userGoals.LastIntakeStreakUpdate = todayUtc;
+                }
+            }
+            else
+            {
+                userGoals.IntakeStreak = 0;
+                userGoals.LastIntakeStreakUpdate = null; // Optional reset
+            }
 
-            await _context.SaveChangesAsync(); // 🔥 Save updated streaks!
+            if (burnGoalMet)
+            {
+                if (userGoals.LastBurnStreakUpdate == null || userGoals.LastBurnStreakUpdate.Value.Date < todayUtc)
+                {
+                    userGoals.BurnStreak = (userGoals.BurnStreak ?? 0) + 1;
+                    userGoals.LastBurnStreakUpdate = todayUtc;
+                }
+            }
+            else
+            {
+                userGoals.BurnStreak = 0;
+                userGoals.LastBurnStreakUpdate = null; // Optional reset
+            }
+
+            await _context.SaveChangesAsync();
 
             var dto = new CaloriesGoalsDTO
             {

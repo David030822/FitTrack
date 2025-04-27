@@ -1,7 +1,5 @@
 import 'package:fitness_app/components/food_tile.dart';
 import 'package:fitness_app/components/my_text_field.dart';
-import 'package:fitness_app/components/streak_icon.dart';
-import 'package:fitness_app/database/food_database.dart';
 import 'package:fitness_app/models/calories_goals.dart';
 import 'package:fitness_app/models/meal.dart';
 import 'package:fitness_app/services/api_service.dart';
@@ -9,7 +7,6 @@ import 'package:fitness_app/services/auth_service.dart';
 import 'package:fitness_app/util/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 
 class FoodPage extends StatefulWidget {
   const FoodPage({super.key});

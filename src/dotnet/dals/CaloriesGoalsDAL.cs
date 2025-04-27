@@ -14,6 +14,9 @@ namespace dotnet.DAL
         public double? OverallGoal { get; set; }
         public int? IntakeStreak { get; set; }
         public int? BurnStreak { get; set; }
+        public DateTime? LastIntakeStreakUpdate { get; set; }
+        public DateTime? LastBurnStreakUpdate { get; set; }
+
         [Required]
         public int UserID { get; set; }
         // Navigation Properties
