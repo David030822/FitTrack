@@ -6,5 +6,6 @@ namespace dotnet.DTOs
         public string Name { get; set; }
         public string? Description { get; set; }
         public double Calories { get; set; }
+        public DateTime Date { get; set; }
     }
 }

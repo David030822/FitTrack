@@ -1,3 +1,4 @@
+import 'package:fitness_app/models/calories_goals.dart';
 import 'package:fitness_app/models/meal.dart';
 import 'package:fitness_app/models/workout.dart';
 import 'package:fitness_app/responsive/constants.dart';
@@ -191,7 +192,7 @@ class ApiService {
     }
 
     final response = await http.post(
-      Uri.parse('$baseUrl/api/workouts?userId=$userId&categoryId=$categoryId'),
+      Uri.parse('$baseUrl/api/workouts/create?userId=$userId&categoryId=$categoryId'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({}),
     );
@@ -253,8 +254,31 @@ class ApiService {
     }
   }
 
+  Future<bool> updateWorkout(int workoutId, double distance) async {
+    final url = Uri.parse('$baseUrl/api/workouts/update/$workoutId');
+
+    final response = await http.put(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        "distance": distance 
+      }),
+    );
+
+    if (response.statusCode == 204) {
+      print('✅ Workout updated successfully.');
+      return true;
+    } else if (response.statusCode == 404) {
+      print('❌ Workout not found.');
+      return false;
+    } else {
+      print('❌ Failed to update workout: ${response.body}');
+      return false;
+    }
+  }
+
   Future<bool> deleteWorkout(int workoutId) async {
-    final url = Uri.parse('$baseUrl/api/workouts/$workoutId');
+    final url = Uri.parse('$baseUrl/api/workouts/delete/$workoutId');
 
     final response = await http.delete(url, headers: {
       'Content-Type': 'application/json',
@@ -345,6 +369,8 @@ class ApiService {
       'Content-Type': 'application/json',
     });
 
+    print("🧾RAW meal JSON: ${response.body}");
+
     if (response.statusCode == 200) {
       final List<dynamic> jsonData = json.decode(response.body);
 
@@ -411,6 +437,146 @@ class ApiService {
     } else {
       print('❌ Failed to delete meal: ${response.body}');
       return false;
+    }
+  }
+
+  Future<bool> upsertCaloriesGoals({
+    double? intakeGoal,
+    double? burnGoal,
+    double? overallGoal,
+    int? intakeStreak,
+    int? burnStreak,
+  }) async {
+    final token = await AuthService.getToken();
+    if (token == null) {
+      throw Exception("User is not logged in");
+    }
+
+    final userId = await AuthService.getUserIdFromToken(token);
+    if (userId == null) {
+      print('❌User ID is NULL!');
+      return false;
+    }
+
+    final url = Uri.parse('$baseUrl/api/calories-goals/upsert?userId=$userId');
+
+    // Only include non-null values in the body
+    final Map<String, dynamic> body = {};
+    if (intakeGoal != null) body["intakeGoal"] = intakeGoal;
+    if (burnGoal != null) body["burnGoal"] = burnGoal;
+    if (overallGoal != null) body["overallGoal"] = overallGoal;
+    if (intakeStreak != null) body["intakeStreak"] = intakeStreak;
+    if (burnStreak != null) body["burnStreak"] = burnStreak;
+
+    final response = await http.put(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode == 200) {
+      print('✅ Calories goals updated!');
+      return true;
+    } else {
+      print('❌ Failed to update calories goals: ${response.body}');
+      return false;
+    }
+  }
+
+  Future<CaloriesGoals> getCaloriesGoalsForCurrentUser() async {
+    final token = await AuthService.getToken();
+    if (token == null) {
+      throw Exception("User is not logged in");
+    }
+
+    final userId = await AuthService.getUserIdFromToken(token);
+    if (userId == null) {
+      print('❌User ID is NULL!');
+      throw Exception("User ID is NULL!");
+    }
+
+    final url = Uri.parse('$baseUrl/api/calories-goals/get?userId=$userId');
+
+    final response = await http.get(url, headers: {
+      'Content-Type': 'application/json',
+    });
+
+    if (response.statusCode == 200) {
+      final jsonData = json.decode(response.body);
+
+      return CaloriesGoals.fromJson(jsonData);
+    } else {
+      print('❌ Failed to fetch calories goal: ${response.statusCode} - ${response.body}');
+      throw Exception("Failed to fetch calories goal!");
+    }
+  }
+
+  Future<double> fetchTodayCaloriesBurned() async {
+    final token = await AuthService.getToken();
+    if (token == null) {
+      throw Exception("User is not logged in");
+    }
+
+    final userId = await AuthService.getUserIdFromToken(token);
+    if (userId == null) {
+      print('❌User ID is NULL!');
+      throw Exception("User ID is NULL!");
+    }
+
+    final url = Uri.parse('$baseUrl/api/calories-goals/daily-burn?userId=$userId');
+    final response = await http.get(url, headers: {'Authorization': 'Bearer $token'});
+
+    if (response.statusCode == 200) {
+      print("Total calories burnt: ${response.body}");
+      return double.parse(response.body);
+    } else {
+      throw Exception('Failed to fetch burned calories');
+    }
+  }
+
+  Future<double> fetchTodayCaloriesIntake() async {
+    final token = await AuthService.getToken();
+    if (token == null) {
+      throw Exception("User is not logged in");
+    }
+
+    final userId = await AuthService.getUserIdFromToken(token);
+    if (userId == null) {
+      print('❌User ID is NULL!');
+      throw Exception("User ID is NULL!");
+    }
+
+    final url = Uri.parse('$baseUrl/api/calories-goals/daily-intake?userId=$userId');
+    final response = await http.get(url, headers: {'Authorization': 'Bearer $token'});
+
+    if (response.statusCode == 200) {
+      print("Total calories intake: ${response.body}");
+      return double.parse(response.body);
+    } else {
+      throw Exception('Failed to fetch calories intake');
+    }
+  }
+
+  Future<CaloriesGoals> fetchStreaks() async {
+    final token = await AuthService.getToken();
+    if (token == null) {
+      throw Exception("User is not logged in");
+    }
+
+    final userId = await AuthService.getUserIdFromToken(token);
+    if (userId == null) {
+      throw Exception("Failed to get userID from token!");
+    }
+
+    final url = Uri.parse('$baseUrl/api/calories-goals/streaks?userId=$userId');
+
+    final response = await http.get(url, headers: {'Authorization': 'Bearer $token'});
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return CaloriesGoals.fromJson(data); // Assuming you have a model class
+    } else {
+      throw Exception('Failed to fetch streaks.');
     }
   }
 }

@@ -14,7 +14,8 @@ namespace dotnet.Converters
                 UserId = dal.UserID,
                 Name = dal.Name,
                 Description = dal.Description,
-                Calories = dal.Calories.Amount
+                Calories = dal.Calories.Amount,
+                CreatedAt = dal.Calories.DateTime
             };
         }
 
@@ -37,7 +38,8 @@ namespace dotnet.Converters
                 Id = model.Id,
                 Name = model.Name,
                 Calories = model.Calories,
-                Description = model.Description
+                Description = model.Description,
+                Date = model.CreatedAt.ToLocalTime()
             };
         }
 
@@ -49,7 +51,8 @@ namespace dotnet.Converters
                 Name = dto.Name,
                 UserId = userId,
                 Description = dto.Description,
-                Calories = dto.Calories
+                Calories = dto.Calories,
+                CreatedAt = dto.Date.ToUniversalTime()
             };
         }
     }

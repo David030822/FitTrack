@@ -2,9 +2,12 @@
 
 import 'package:fitness_app/components/my_text_field.dart';
 import 'package:fitness_app/components/square_tile.dart';
+import 'package:fitness_app/components/streak_icon.dart';
 import 'package:fitness_app/database/food_database.dart';
+import 'package:fitness_app/models/calories_goals.dart';
 import 'package:fitness_app/models/weather_model.dart';
 import 'package:fitness_app/pages/training_page.dart';
+import 'package:fitness_app/services/api_service.dart';
 import 'package:fitness_app/services/weather_service.dart';
 import 'package:fitness_app/util/custom_button.dart';
 import 'package:flutter/material.dart';
@@ -23,9 +26,14 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+  final api = ApiService();
   // text controller for calories
   final _caloriesController = TextEditingController();
-  String _calories = '';
+  double? overallGoal;
+  double? totalBurnt;
+  double? totalIntake;
+  int? intakeStreakCount;
+  int? burnStreakCount;
 
   // pedometer
   late Stream<StepCount> _stepCountStream;
@@ -78,19 +86,6 @@ class _MainPageState extends State<MainPage> {
       default:
         return 'assets/animations/sunny.json';
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    initPlatformState();
-
-    final foodDatabase = Provider.of<FoodDatabase>(context, listen: false);
-    foodDatabase.fetchAppSettings();
-    foodDatabase.updateTotalCaloriesBurnt();
-
-    // fetch weather on startup
-    _fetchWeather();
   }
 
   @override
@@ -152,6 +147,117 @@ class _MainPageState extends State<MainPage> {
     if (!mounted) return;
   }
 
+  void showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
+  void showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.green),
+    );
+  }
+
+  // Set the daily goal
+  void setDailyGoal() async {
+    final goal = double.tryParse(_caloriesController.text);
+    if (goal != null) {
+      bool ok = await api.upsertCaloriesGoals(overallGoal: goal);
+      if (ok) {
+        setState(() {
+          overallGoal = goal;
+        });
+        showSuccess('Overall goal updated!');
+      } else {
+        showError("Failed to update overall goal!");
+      }
+    }
+    _caloriesController.clear();
+  }
+
+  // get current daily goal
+  void getDailyGoal() async {
+    CaloriesGoals caloriesGoals = await api.getCaloriesGoalsForCurrentUser();
+    setState(() {
+      overallGoal = caloriesGoals.overallGoal;
+    });
+  }
+
+  void getTotalCaloriesBurnt() async {
+    double total = await api.fetchTodayCaloriesBurned();
+    print('🟢 Total Calories Burned: $total');
+    setState(() {
+      totalBurnt = total;
+    });
+  }
+
+  void getTotalCaloriesIntake() async {
+    double total = await api.fetchTodayCaloriesIntake();
+    print('🟢 Total Calories Intake: $total');
+    setState(() {
+      totalIntake = total;
+    });
+  }
+
+  void getStreaks() async {
+    CaloriesGoals goals = await api.fetchStreaks();
+    int intakeStreak = goals.intakeStreak ?? 0;
+    int burnStreak = goals.burnStreak ?? 0;
+
+    setState(() {
+      intakeStreakCount = intakeStreak;
+      burnStreakCount = burnStreak;
+    });
+  }
+
+  String getProgressText(double? intake, double? burnt) {
+    if (intake == null && burnt == null) return 'No progress yet';
+    if (intake == null) return 'Burnt: ${burnt!.toStringAsFixed(1)}';
+    if (burnt == null) return 'Intake: ${intake.toStringAsFixed(1)}';
+    return '${intake.toStringAsFixed(1)} - ${burnt.toStringAsFixed(1)} = ${(intake - burnt).toStringAsFixed(1)}';
+  }
+
+   @override
+  void initState() {
+    super.initState();
+    initPlatformState();
+
+    getDailyGoal();
+    getTotalCaloriesBurnt();
+    getTotalCaloriesIntake();
+    getStreaks();
+
+    // fetch weather on startup
+    _fetchWeather();
+  }
+
+  /// Helper Widget
+  Widget _buildInfoRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: GoogleFonts.dmSerifText(
+              fontSize: 20,
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
+          ),
+        ),
+        Text(
+          value,
+          style: GoogleFonts.dmSerifText(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.inversePrimary,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -161,6 +267,7 @@ class _MainPageState extends State<MainPage> {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -204,95 +311,188 @@ class _MainPageState extends State<MainPage> {
 
                     const SizedBox(height: 25),
 
-                    Padding(
-                      padding: const EdgeInsets.only(right: 20.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: MyTextField(
-                              controller: _caloriesController,
-                              hintText: 'Enter daily calories goal',
-                              obscureText: false,
-                            ),
-                          ),
-                          CustomButton(
-                            color: Theme.of(context).colorScheme.tertiary,
-                            textColor: Theme.of(context).colorScheme.outline,
-                            onPressed: () {
-                              setState(() {
-                                _calories = _caloriesController.text;
-                                final double newGoal = double.tryParse(_calories) ?? 0.0;
-
-                                // Save the new goal to the database
-                                Provider.of<FoodDatabase>(context, listen: false).updateCaloriesGoal(newGoal);
-
-                                _caloriesController.clear(); // Clear the text field
-                              });
-                            },
-                            label: 'Confirm',
-                          ),
-                        ],
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        streakIcon(intakeStreakCount ?? 0, 'intake'),
+                        const SizedBox(height: 8),
+                        streakIcon(burnStreakCount ?? 0, 'burn'),
+                      ],
                     ),
 
-                    const SizedBox(height: 15),
+                    const SizedBox(height: 25),
 
-                    Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        'Today\'s goal: ',
-                        style: GoogleFonts.dmSerifText(
-                          fontSize: 24,
-                          color: Theme.of(context).colorScheme.inversePrimary,
+                      // Daily Goal Input Card
+                      Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 4,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: MyTextField(
+                                  controller: _caloriesController,
+                                  hintText: 'Overall goal',
+                                  obscureText: false,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              CustomButton(
+                                color: Theme.of(context).colorScheme.tertiary,
+                                textColor: Theme.of(context).colorScheme.outline,
+                                onPressed: setDailyGoal,
+                                label: 'Confirm',
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      Consumer<FoodDatabase>(
-                        builder: (context, foodDatabase, child) {
-                          final caloriesGoal = foodDatabase.appSettings.dailyCaloriesGoal;
-                          return Text(
-                            caloriesGoal == 0.0 ? 'No goal set' : caloriesGoal.toString(),
-                            style: GoogleFonts.dmSerifText(
-                              fontSize: 24,
-                              color: Theme.of(context).colorScheme.inversePrimary,
-                            ),
-                          );
-                        },
+                  
+                      // Goal Info Card
+                      Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 2,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            children: [
+                              _buildInfoRow('Today\'s goal :', overallGoal == null ? 'No goal set' : overallGoal!.toStringAsFixed(1)),
+                              const SizedBox(height: 10),
+                              _buildInfoRow('Progress:', getProgressText(totalIntake, totalBurnt)),
+
+                              const SizedBox(height: 10),
+
+                              // Progress with percentage and marker
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 10.0), // Extra padding vertically
+                                child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final goal = overallGoal ?? 0;
+                                    final calories = (totalIntake ?? 0.0) - (totalBurnt ?? 0.0);
+                                    final progress = (goal == 0) ? 0.0 : (calories / goal).clamp(0.0, 1.0);
+                                    final percentage = (progress * 100).toInt();
+
+                                    return SizedBox(
+                                      height: 60, // <-- Give enough height for the % and dot
+                                      child: Stack(
+                                        alignment: Alignment.centerLeft,
+                                        children: [
+                                          // Background bar
+                                          Positioned(
+                                            top: 30, // Move it down to leave space above
+                                            child: Container(
+                                              height: 20,
+                                              width: constraints.maxWidth,
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(10),
+                                                color: Colors.grey.shade300,
+                                              ),
+                                            ),
+                                          ),
+
+                                          // Gradient bar
+                                          Positioned(
+                                            top: 30,
+                                            child: Container(
+                                              height: 20,
+                                              width: constraints.maxWidth * progress,
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(10),
+                                                gradient: const LinearGradient(
+                                                  colors: [Colors.red, Colors.orange, Colors.green],
+                                                  stops: [0.0, 0.5, 1.0],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+
+                                          // Floating percentage + dot
+                                          Positioned(
+                                            left: (constraints.maxWidth * progress).clamp(0, constraints.maxWidth - 50),
+                                            top: 0,
+                                            child: Transform.translate(
+                                              offset: const Offset(-20, 0), // Adjust this based on the width of your column
+                                              child: Column(
+                                                children: [
+                                                  Container(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      borderRadius: BorderRadius.circular(4),
+                                                      boxShadow: const [
+                                                        BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))
+                                                      ],
+                                                    ),
+                                                    child: Text(
+                                                      '$percentage%',
+                                                      style: const TextStyle(
+                                                        fontSize: 12,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: Colors.black,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 5),
+                                                  Container(
+                                                    width: 10,
+                                                    height: 10,
+                                                    decoration: const BoxDecoration(
+                                                      color: Colors.black,
+                                                      shape: BoxShape.circle,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Remaining: ',
+                                    style: GoogleFonts.dmSerifText(
+                                      fontSize: 24,
+                                      color: Theme.of(context).colorScheme.inversePrimary,
+                                    ),
+                                  ),
+                                  Consumer<FoodDatabase>(
+                                    builder: (context, foodDatabase, child) {
+                                      final caloriesRemaining = (overallGoal ?? 0) - ((totalIntake ?? 0) - (totalBurnt ?? 0));
+                                      return Text(
+                                        caloriesRemaining == 0
+                                            ? 'Done for today'
+                                            : caloriesRemaining.toStringAsFixed(1),
+                                        style: GoogleFonts.dmSerifText(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(context).colorScheme.inversePrimary,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ],
                   ),
-            
-                  SizedBox(height: 20),
 
-                    Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Progress: ',
-                        style: GoogleFonts.dmSerifText(
-                          fontSize: 24,
-                          color: Theme.of(context).colorScheme.inversePrimary,
-                        ),
-                      ),
-                      Consumer<FoodDatabase>(
-                        builder: (context, foodDatabase, child) {
-                          final caloriesBurnt = foodDatabase.appSettings.totalBurnt;
-                          final totalIntake = foodDatabase.appSettings.totalIntake;
-                          final remaining = totalIntake - caloriesBurnt;
-                          return Text(
-                            remaining == 0.0 ? 'Done for today' : '$totalIntake - $caloriesBurnt = $remaining',
-                            style: GoogleFonts.dmSerifText(
-                              fontSize: 24,
-                              color: Theme.of(context).colorScheme.inversePrimary,
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-            
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,

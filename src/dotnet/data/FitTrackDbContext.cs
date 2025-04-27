@@ -12,6 +12,8 @@ public class AppDbContext : DbContext{
     public DbSet<WorkoutCaloriesDAL> WorkoutCalories { get; set; }
     public DbSet<StepsDAL> Steps { get; set; }
     public DbSet<MealDAL> Meal { get; set; }
+    public DbSet<CaloriesGoalsDAL> CaloriesGoals { get; set; }
+
     public DbSet<HeatmapDAL> Heatmaps { get; set; }
     public DbSet<GoalDAL> Goals { get; set; }
     public DbSet<AppDevicesDAL> AppDevices { get; set; }
@@ -139,5 +141,12 @@ public class AppDbContext : DbContext{
 
         // AppLogs
         modelBuilder.Entity<AppLogs>();
+
+        // One-to-One: User -> CaloriesGoals
+        modelBuilder.Entity<CaloriesGoalsDAL>()
+            .HasOne(c => c.User)
+            .WithOne(u => u.CaloriesGoals)
+            .HasForeignKey<CaloriesGoalsDAL>(c => c.UserID)
+            .OnDelete(DeleteBehavior.Cascade);  // Delete CaloriesGoals if User is deleted
     }
 }

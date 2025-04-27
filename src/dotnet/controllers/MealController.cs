@@ -37,8 +37,12 @@ namespace dotnet.Controllers
         [HttpGet("user/{userId}")]
         public async Task<IActionResult> GetMealsByUserId(int userId)
         {
-            var workouts = await _service.GetMealDTOsForUserAsync(userId);
-            return Ok(workouts);
+            var meals = await _service.GetMealDTOsForUserAsync(userId);
+            foreach (var meal in meals)
+            {
+                Console.WriteLine($"👉Controller MealID: {meal.Id}, Calories: {meal.Calories}, Date: {meal.Date}");
+            }
+            return Ok(meals);
         }
 
         [HttpPost("create")]

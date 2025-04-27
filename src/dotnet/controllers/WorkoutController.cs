@@ -19,14 +19,14 @@ namespace dotnet.Controllers
             _categoryService = categoryService;
         }
 
-        [HttpGet]
+        [HttpGet("all")]
         public async Task<IActionResult> GetAllWorkouts()
         {
             var workouts = await _workoutService.GetAllWorkoutsAsync();
             return Ok(workouts.Select(WorkoutConverter.FromWorkoutToWorkoutDTO));
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("get/{id}")]
         public async Task<IActionResult> GetWorkoutById(int id)
         {
             var workout = await _workoutService.GetWorkoutByIdAsync(id);
@@ -40,10 +40,13 @@ namespace dotnet.Controllers
         public async Task<IActionResult> GetWorkoutsByUserId(int userId)
         {
             var workouts = await _workoutService.GetWorkoutDTOsForUserAsync(userId);
+            foreach (var w in workouts) {
+                Console.WriteLine($"👉Controller WorkoutID: {w.Id}, Category: {(w.Category == null ? "NULL" : w.Category)}, Calories: {(w.Calories == null ? "NULL" : w.Calories.ToString())}, Date: {w.StartDate} - {w.EndDate}");
+            }
             return Ok(workouts);
         }
 
-        [HttpPost]
+        [HttpPost("create")]
         public async Task<IActionResult> AddWorkout([FromBody] WorkoutDTO workoutDTO, int userId, int categoryId)
         {
             // var ongoingWorkout = await _workoutService.GetOngoingWorkoutForUser(userId);
@@ -72,22 +75,20 @@ namespace dotnet.Controllers
         }
         // http://localhost:5082/api/workouts?userId=41&categoryId=3
 
-        [HttpPut("{id}")]
+        [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateWorkout(int id, [FromBody] WorkoutDTO workoutDTO)
         {
             var existingWorkout = await _workoutService.GetWorkoutByIdAsync(id);
             if (existingWorkout == null)
                 return NotFound();
 
-            existingWorkout.Distance = workoutDTO.Distance ?? 0.0;
-            existingWorkout.StartDate = workoutDTO.StartDate ?? DateTime.UtcNow;
-            existingWorkout.EndDate = workoutDTO.EndDate;
+            existingWorkout.Distance = workoutDTO.Distance ?? existingWorkout.Distance;
 
             await _workoutService.UpdateWorkoutAsync(existingWorkout);
             return NoContent();
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteWorkout(int id)
         {
             var workout = await _workoutService.GetWorkoutByIdAsync(id);

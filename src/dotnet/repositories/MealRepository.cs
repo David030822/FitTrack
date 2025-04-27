@@ -74,6 +74,9 @@ namespace dotnet.Repositories
             var meal = await GetMealByIdAsync(id);
             if (meal != null)
             {
+                var calories = await _context.Calories.FindAsync(meal.CaloriesID);
+                if (calories != null)
+                    _context.Calories.Remove(calories);
                 _context.Meal.Remove(meal);
                 await _context.SaveChangesAsync();
             }
@@ -88,7 +91,7 @@ namespace dotnet.Repositories
 
             foreach (var m in meals)
             {
-                Console.WriteLine($"👉 MealID: {m.MealID}, Calories: {(m.Calories == null ? "NULL" : m.Calories.Amount.ToString())}");
+                Console.WriteLine($"👉Repo MealID: {m.MealID}, Calories: {(m.Calories == null ? "NULL" : m.Calories.Amount.ToString())}, Date: {m.Calories.DateTime}");
             }
 
             return meals.Select(m => new MealDTO
@@ -96,7 +99,8 @@ namespace dotnet.Repositories
                 Id = m.MealID,
                 Name = m.Name,
                 Description = m.Description,
-                Calories = m.Calories.Amount
+                Calories = m.Calories.Amount,
+                Date = m.Calories.DateTime.ToLocalTime() // 👈 this bad boy was missing
             }).ToList();
         }
     }

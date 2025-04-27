@@ -1,7 +1,7 @@
-import 'package:fitness_app/models/food.dart';
 import 'package:fitness_app/models/meal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:intl/intl.dart';
 
 class FoodTile extends StatelessWidget {
   final Meal meal;
@@ -78,6 +78,18 @@ class FoodTile extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+
+                    // Date (subtle)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        DateFormat('MMM d, yyyy').format(meal.date),
+                        style: TextStyle(
+                          color: Colors.grey[500],
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
