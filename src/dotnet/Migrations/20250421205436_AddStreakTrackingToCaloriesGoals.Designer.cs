@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using dotnet.Data;
@@ -11,9 +12,11 @@ using dotnet.Data;
 namespace dotnet.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250421205436_AddStreakTrackingToCaloriesGoals")]
+    partial class AddStreakTrackingToCaloriesGoals
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -82,9 +85,6 @@ namespace dotnet.Migrations
 
                     b.Property<int?>("IntakeStreak")
                         .HasColumnType("integer");
-
-                    b.Property<double?>("OverallGoal")
-                        .HasColumnType("double precision");
 
                     b.Property<int>("UserID")
                         .HasColumnType("integer");

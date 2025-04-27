@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using dotnet.Data;
@@ -11,9 +12,11 @@ using dotnet.Data;
 namespace dotnet.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250421175455_UpdateCaloriesGoalsTable")]
+    partial class UpdateCaloriesGoalsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -74,16 +77,7 @@ namespace dotnet.Migrations
                     b.Property<double?>("BurnGoal")
                         .HasColumnType("double precision");
 
-                    b.Property<int?>("BurnStreak")
-                        .HasColumnType("integer");
-
                     b.Property<double?>("IntakeGoal")
-                        .HasColumnType("double precision");
-
-                    b.Property<int?>("IntakeStreak")
-                        .HasColumnType("integer");
-
-                    b.Property<double?>("OverallGoal")
                         .HasColumnType("double precision");
 
                     b.Property<int>("UserID")

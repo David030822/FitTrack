@@ -56,6 +56,9 @@ namespace dotnet.DAL
         // One-to-Many: A user has multiple goals
         public ICollection<GoalDAL> Goals { get; set; } = new List<GoalDAL>();
 
+        // One-to-One: A user has one calories goal
+        public CaloriesGoalsDAL? CaloriesGoals { get; set; }
+
         // Many-to-Many: Following system
         [InverseProperty("Follower")]
         public ICollection<FollowingDAL> FollowingUsers { get; set; } = new List<FollowingDAL>();

@@ -59,7 +59,7 @@ namespace dotnet.Repositories
             var caloriesDAL = new CaloriesDAL
             { 
                 Amount = 0,
-                DateTime = workoutDAL.StartDate.ToUniversalTime(),
+                DateTime = workoutDAL.StartDate,
             };
             _context.Calories.Add(caloriesDAL);
             await _context.SaveChangesAsync(); // Save to get CaloriesID
@@ -85,8 +85,6 @@ namespace dotnet.Repositories
             if (existingWorkout != null)
             {
                 existingWorkout.Distance = workout.Distance;
-                existingWorkout.StartDate = workout.StartDate;
-                existingWorkout.EndDate = workout.EndDate;
                 await _context.SaveChangesAsync();
             }
         }
@@ -193,15 +191,15 @@ namespace dotnet.Repositories
 
             foreach (var w in workouts)
             {
-                Console.WriteLine($"👉 WorkoutID: {w.WorkoutID}, Category: {(w.Category == null ? "NULL" : w.Category.Name)}, Calories: {(w.WorkoutCalories == null ? "NULL" : w.WorkoutCalories.Calories.Amount.ToString())}");
+                Console.WriteLine($"👉Repo WorkoutID: {w.WorkoutID}, Category: {(w.Category == null ? "NULL" : w.Category.Name)}, Calories: {(w.WorkoutCalories == null ? "NULL" : w.WorkoutCalories.Calories.Amount.ToString())}, Date: {w.StartDate} - {w.EndDate}");
             }
 
             return workouts.Select(w => new WorkoutDTO
             {
                 Id = w.WorkoutID,
                 Distance = w.Distance,
-                StartDate = w.StartDate,
-                EndDate = w.EndDate,
+                StartDate = w.StartDate.ToLocalTime(), // StartDate is NOT nullable, so normal ToLocalTime
+                EndDate = w.EndDate.ToLocalTimeSafe(),
                 Category = w.Category?.Name ?? "Unknown",
                 Calories = Math.Round(w.WorkoutCalories?.Calories?.Amount ?? 0, 2),  // Two decimals,
                 Duration = w.EndDate.HasValue

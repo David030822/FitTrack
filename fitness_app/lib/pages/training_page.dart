@@ -1,18 +1,12 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
-
-import 'dart:convert';
-
 import 'package:fitness_app/components/my_text_field.dart';
-import 'package:fitness_app/database/food_database.dart';
-import 'package:fitness_app/pages/home_page.dart';
+import 'package:fitness_app/models/calories_goals.dart';
 import 'package:fitness_app/responsive/constants.dart';
 import 'package:fitness_app/services/api_service.dart';
 import 'package:fitness_app/util/custom_button.dart';
 import 'package:fitness_app/util/my_dropdown_button.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
 
 class TrainingPage extends StatefulWidget {
@@ -23,13 +17,15 @@ class TrainingPage extends StatefulWidget {
 }
 
 class _TrainingPageState extends State<TrainingPage> {
+  final api = ApiService();
   final StopWatchTimer _stopWatchTimer = StopWatchTimer();
   final _isHours = true;
   final _scrollController = ScrollController();
   final _caloriesController = TextEditingController();
-  String _calories = '';
+  double? burnGoal;
+  double? totalBurnt;
   int? _currentWorkoutId;
-  DateTime? _startTime;
+  // DateTime? _startTime;
   int? _selectedCategoryId; // Stores the selected category ID
   bool isLoading = true;
   bool isPaused = false;
@@ -54,9 +50,70 @@ class _TrainingPageState extends State<TrainingPage> {
     );
   }
 
+  // Set the daily goal
+  void setDailyGoal() async {
+    final goal = double.tryParse(_caloriesController.text);
+    if (goal != null) {
+      bool ok = await api.upsertCaloriesGoals(burnGoal: goal);
+      if (ok) {
+        setState(() {
+          burnGoal = goal;
+        });
+        showSuccess('Burn goal updated!');
+      } else {
+        showError("Failed to update burn goal!");
+      }
+    }
+    _caloriesController.clear();
+  }
+
+  // get current daily goal
+  void getDailyGoal() async {
+    CaloriesGoals caloriesGoals = await api.getCaloriesGoalsForCurrentUser();
+    setState(() {
+      burnGoal = caloriesGoals.burnGoal;
+    });
+  }
+
+  void getTotalCalories() async {
+    double total = await api.fetchTodayCaloriesBurned();
+    print('🟢 Total Calories Burned: $total');
+    setState(() {
+      totalBurnt = total;
+    });
+  }
+
   @override
   void initState() {
+    getDailyGoal();
+    getTotalCalories();
     super.initState();
+  }
+
+  /// Helper Widget
+  Widget _buildInfoRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: GoogleFonts.dmSerifText(
+              fontSize: 20,
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
+          ),
+        ),
+        Text(
+          value,
+          style: GoogleFonts.dmSerifText(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.inversePrimary,
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -81,115 +138,171 @@ class _TrainingPageState extends State<TrainingPage> {
             
                   const SizedBox(height: 25),
                   
-                  Padding(
-                    padding: const EdgeInsets.only(right: 20.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: MyTextField(
-                            controller: _caloriesController,
-                            hintText: 'Enter daily goal',
-                            obscureText: false,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Daily Goal Input Card
+                      Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 4,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: MyTextField(
+                                  controller: _caloriesController,
+                                  hintText: 'Daily burn goal',
+                                  obscureText: false,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              CustomButton(
+                                color: Theme.of(context).colorScheme.tertiary,
+                                textColor: Theme.of(context).colorScheme.outline,
+                                onPressed: setDailyGoal,
+                                label: 'Confirm',
+                              ),
+                            ],
                           ),
                         ),
-                        CustomButton(
-                          color: Theme.of(context).colorScheme.tertiary,
-                          textColor: Theme.of(context).colorScheme.outline,
-                          onPressed: () {
-                            setState(() {
-                              _calories = _caloriesController.text;
-                              final double newGoal = double.tryParse(_calories) ?? 0.0;
-            
-                              // Save the new goal to the database
-                              Provider.of<FoodDatabase>(context, listen: false).updateCaloriesToBurnGoal(newGoal);
-            
-                              _caloriesController.clear(); // Clear the text field
-                            });
-                          },
-                          label: 'Confirm',
-                        ),
-                      ],
-                    ),
-                  ),
-            
-                  const SizedBox(height: 15),
+                      ),
                   
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Calories to burn today: ',
-                        style: GoogleFonts.dmSerifText(
-                          fontSize: 24,
-                          color: Theme.of(context).colorScheme.inversePrimary,
+                      // Goal Info Card
+                      Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 2,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            children: [
+                              _buildInfoRow('Calories to burn today:', burnGoal == null ? 'No goal set' : burnGoal.toString()),
+                              const SizedBox(height: 10),
+                              _buildInfoRow('Total burnt until now:', totalBurnt == null ? 'No calories burnt yet' : totalBurnt!.toStringAsFixed(1)),
+                              const SizedBox(height: 10),
+
+                              // Progress with percentage and marker
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 10.0), // Extra padding vertically
+                                child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final goal = burnGoal ?? 0;
+                                    final intake = totalBurnt;
+                                    final progress = (goal == 0) ? 0.0 : ((intake ?? 0) / goal).clamp(0.0, 1.0);
+                                    final percentage = (progress * 100).toInt();
+
+                                    return SizedBox(
+                                      height: 60, // <-- Give enough height for the % and dot
+                                      child: Stack(
+                                        alignment: Alignment.centerLeft,
+                                        children: [
+                                          // Background bar
+                                          Positioned(
+                                            top: 30, // Move it down to leave space above
+                                            child: Container(
+                                              height: 20,
+                                              width: constraints.maxWidth,
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(10),
+                                                color: Colors.grey.shade300,
+                                              ),
+                                            ),
+                                          ),
+
+                                          // Gradient bar
+                                          Positioned(
+                                            top: 30,
+                                            child: Container(
+                                              height: 20,
+                                              width: constraints.maxWidth * progress,
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(10),
+                                                gradient: const LinearGradient(
+                                                  colors: [Colors.red, Colors.orange, Colors.green],
+                                                  stops: [0.0, 0.5, 1.0],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+
+                                          // Floating percentage + dot
+                                          Positioned(
+                                            left: (constraints.maxWidth * progress).clamp(0, constraints.maxWidth - 50),
+                                            top: 0,
+                                            child: Transform.translate(
+                                              offset: const Offset(-20, 0), // Adjust this based on the width of your column
+                                              child: Column(
+                                                children: [
+                                                  Container(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      borderRadius: BorderRadius.circular(4),
+                                                      boxShadow: const [
+                                                        BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))
+                                                      ],
+                                                    ),
+                                                    child: Text(
+                                                      '$percentage%',
+                                                      style: const TextStyle(
+                                                        fontSize: 12,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: Colors.black,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 5),
+                                                  Container(
+                                                    width: 10,
+                                                    height: 10,
+                                                    decoration: const BoxDecoration(
+                                                      color: Colors.black,
+                                                      shape: BoxShape.circle,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Remaining: ',
+                                    style: GoogleFonts.dmSerifText(
+                                      fontSize: 24,
+                                      color: Theme.of(context).colorScheme.inversePrimary,
+                                    ),
+                                  ),
+                                  Builder(
+                                    builder: (context) {
+                                      final caloriesRemaining = (burnGoal ?? 0) - (totalBurnt ?? 0);
+                                      return Text(
+                                        caloriesRemaining <= 0
+                                            ? 'Done for today'
+                                            : caloriesRemaining.toStringAsFixed(1),
+                                        style: GoogleFonts.dmSerifText(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(context).colorScheme.inversePrimary,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      Consumer<FoodDatabase>(
-                        builder: (context, foodDatabase, child) {
-                          final caloriesToBurnGoal = foodDatabase.appSettings.dailyBurnGoal;
-                          return Text(
-                            caloriesToBurnGoal == 0.0 ? 'No goal set' : caloriesToBurnGoal.toString(),
-                            style: GoogleFonts.dmSerifText(
-                              fontSize: 24,
-                              color: Theme.of(context).colorScheme.inversePrimary,
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-            
-                  SizedBox(height: 20),
-            
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Calories burnt until now: ',
-                        style: GoogleFonts.dmSerifText(
-                          fontSize: 24,
-                          color: Theme.of(context).colorScheme.inversePrimary,
-                        ),
-                      ),
-                      Consumer<FoodDatabase>(
-                        builder: (context, foodDatabase, child) {
-                          final caloriesBurnt = foodDatabase.appSettings.totalBurnt;
-                          return Text(
-                            caloriesBurnt == 0.0 ? 'Zero' : caloriesBurnt.toString(),
-                            style: GoogleFonts.dmSerifText(
-                              fontSize: 24,
-                              color: Theme.of(context).colorScheme.inversePrimary,
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-            
-                  const SizedBox(height: 10),
-            
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Remaining: ',
-                        style: GoogleFonts.dmSerifText(
-                          fontSize: 24,
-                          color: Theme.of(context).colorScheme.inversePrimary,
-                        ),
-                      ),
-                      Consumer<FoodDatabase>(
-                        builder: (context, foodDatabase, child) {
-                          final caloriesRemaining = foodDatabase.appSettings.dailyBurnGoal - foodDatabase.appSettings.totalBurnt;
-                          return Text(
-                            caloriesRemaining == 0.0 ? 'Done for today' : caloriesRemaining.toString(),
-                            style: GoogleFonts.dmSerifText(
-                              fontSize: 24,
-                              color: Theme.of(context).colorScheme.inversePrimary,
-                            ),
-                          );
-                        },
                       ),
                     ],
                   ),
@@ -288,7 +401,7 @@ class _TrainingPageState extends State<TrainingPage> {
                                     if (workoutId != null) {
                                       setState(() {
                                         _currentWorkoutId = workoutId;
-                                        _startTime = DateTime.now();
+                                        // _startTime = DateTime.now();
                                       });
                                       print("🔥 Workout started with ID: $_currentWorkoutId");
                                     } else {
@@ -356,13 +469,19 @@ class _TrainingPageState extends State<TrainingPage> {
                                           onPressed: () async {
                                             final api = ApiService();
                                             if (_currentWorkoutId != null) {
-                                              await api.deleteWorkout(_currentWorkoutId!);
-                                              print("✅Deleted workout with ID: $_currentWorkoutId successfully!");
-
+                                              bool ok = await api.deleteWorkout(_currentWorkoutId!);
+                                              if (ok) {
+                                                print("✅Deleted workout with ID: $_currentWorkoutId successfully!");
+                                                showSuccess('Workout data reset!');
+                                              } else {
+                                                print('❌Failed to delete workout!');
+                                                showError('Failed to reset workout!');
+                                              }
+                                              
                                               if (mounted) {
                                                 setState(() {
                                                   _currentWorkoutId = null;
-                                                  _startTime = null;
+                                                  // _startTime = null;
                                                 });
                                               }
 
@@ -448,7 +567,7 @@ class _TrainingPageState extends State<TrainingPage> {
                                                   if (mounted) {
                                                     setState(() {
                                                       _currentWorkoutId = null;
-                                                      _startTime = null;
+                                                      // _startTime = null;
                                                     });
                                                   }
 
