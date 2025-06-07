@@ -20,11 +20,6 @@ C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\obj\Debug\net8.0
 C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\obj\Debug\net8.0\dotnet.sourcelink.json
 C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\obj\Debug\net8.0\staticwebassets.build.json
 C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\obj\Debug\net8.0\staticwebassets.development.json
-C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\obj\Debug\net8.0\staticwebassets\msbuild.dotnet.Microsoft.AspNetCore.StaticWebAssets.props
-C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\obj\Debug\net8.0\staticwebassets\msbuild.build.dotnet.props
-C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.dotnet.props
-C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.dotnet.props
-C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\obj\Debug\net8.0\staticwebassets.pack.json
 C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\obj\Debug\net8.0\scopedcss\bundle\dotnet.styles.css
 C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\obj\Debug\net8.0\dotnet.csproj.Up2Date
 C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\obj\Debug\net8.0\dotnet.dll
@@ -34,7 +29,6 @@ C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\obj\Debug\net8.0
 C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\obj\Debug\net8.0\ref\dotnet.dll
 C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\bin\Debug\net8.0\dotnet.staticwebassets.endpoints.json
 C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\obj\Debug\net8.0\staticwebassets.build.endpoints.json
-C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\obj\Debug\net8.0\staticwebassets\msbuild.dotnet.Microsoft.AspNetCore.StaticWebAssetEndpoints.props
 C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\bin\Debug\net8.0\Humanizer.dll
 C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\bin\Debug\net8.0\Microsoft.Bcl.AsyncInterfaces.dll
 C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\bin\Debug\net8.0\Microsoft.Build.Locator.dll
@@ -147,3 +141,4 @@ C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\bin\Debug\net8.0
 C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\bin\Debug\net8.0\Microsoft.IdentityModel.Tokens.dll
 C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\bin\Debug\net8.0\System.IdentityModel.Tokens.Jwt.dll
 C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\bin\Debug\net8.0\dotnet.staticwebassets.runtime.json
+C:\Cuccok\Sapietia\Info\Allamvizsga\Allamvizsga-2025\src\dotnet\obj\Debug\net8.0\staticwebassets.build.json.cache

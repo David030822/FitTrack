@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using dotnet.Models;
 
 namespace dotnet.DAL
 {
@@ -68,11 +69,14 @@ namespace dotnet.DAL
 
         // Self-referencing relationship: Parent-Child
         [ForeignKey("ParentID")]
-        public UserDAL? Parent { get; set; }  
+        public UserDAL? Parent { get; set; }
         public ICollection<UserDAL>? Children { get; set; } = new List<UserDAL>();
 
         // One-to-One: User -> AppDevices
         // [ForeignKey("UDID")] // Assuming UDID is the primary key in AppDevices table
         // public AppDevicesDAL? AppDevices { get; set; }
+
+        // One-to-Many: User -> Conversations
+        public ICollection<Conversation> Conversations { get; set; } = new List<Conversation>();
     }
 }

@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_declarations
 
+import 'package:fitness_app/components/floating_chat_icon.dart';
 import 'package:fitness_app/components/my_text_field.dart';
 import 'package:fitness_app/components/square_tile.dart';
 import 'package:fitness_app/components/streak_icon.dart';
@@ -259,6 +260,7 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingChatIcon(),
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: SingleChildScrollView(

@@ -18,6 +18,8 @@ public class AppDbContext : DbContext{
     public DbSet<GoalDAL> Goals { get; set; }
     public DbSet<AppDevicesDAL> AppDevices { get; set; }
     public DbSet<FollowingDAL> Followings { get; set; }
+    public DbSet<Conversation> Conversations => Set<Conversation>();
+    public DbSet<Message> Messages => Set<Message>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -148,5 +150,19 @@ public class AppDbContext : DbContext{
             .WithOne(u => u.CaloriesGoals)
             .HasForeignKey<CaloriesGoalsDAL>(c => c.UserID)
             .OnDelete(DeleteBehavior.Cascade);  // Delete CaloriesGoals if User is deleted
+
+        // One-to-Many: User -> Conversations
+        modelBuilder.Entity<Conversation>()
+            .HasOne(c => c.User)
+            .WithMany(u => u.Conversations)
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.Cascade); // Delete convos when user is deleted
+
+        // One-to-Many: Conversation -> Messages
+        modelBuilder.Entity<Message>()
+            .HasOne(m => m.Conversation)
+            .WithMany(c => c.Messages)
+            .HasForeignKey(m => m.ConversationId)
+            .OnDelete(DeleteBehavior.Cascade); // Delete messages when convo is deleted
     }
 }

@@ -9,7 +9,6 @@ import 'package:fitness_app/pages/home_page.dart';
 import 'package:fitness_app/pages/login_page.dart';
 import 'package:fitness_app/pages/profile_page.dart';
 import 'package:fitness_app/pages/settings_page.dart';
-import 'package:fitness_app/responsive/constants.dart';
 import 'package:fitness_app/services/api_service.dart';
 import 'package:fitness_app/services/auth_service.dart';
 import 'package:flutter/material.dart';
