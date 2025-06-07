@@ -161,6 +161,11 @@ class _FoodPageState extends State<FoodPage> {
               // pop box
               Navigator.pop(context);
 
+              _lastFetchedDate = null;
+
+              // load changes immediately
+              await _loadMeals();
+
               // clear controllers
               _foodNameController.clear();
               _foodDescriptionController.clear();
@@ -270,6 +275,11 @@ class _FoodPageState extends State<FoodPage> {
               // pop box
               Navigator.pop(context);
 
+              _lastFetchedDate = null;
+
+              // load changes immediately
+              await _loadMeals();
+
               // clear controllers
               _foodNameController.clear();
               _foodDescriptionController.clear();
@@ -323,6 +333,11 @@ class _FoodPageState extends State<FoodPage> {
 
               // pop box
               Navigator.pop(context);
+
+              _lastFetchedDate = null;
+
+              // load changes immediately
+              await _loadMeals();
             },
             child: const Text('Delete'),
           ),
