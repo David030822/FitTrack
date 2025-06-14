@@ -26,7 +26,12 @@ namespace dotnet.DAL
         public string Email { get; set; }
         [MaxLength(15)]
         public string? PhoneNum { get; set; }
-
+        public int? Age { get; set; }
+        public string? Gender { get; set; }
+        public double? Height { get; set; }
+        public double? Weight { get; set; }
+        public double? BodyFat { get; set; }
+        public string? Goal { get; set; }
         [Required]
         [MaxLength(50)]
         public string Username { get; set; }
@@ -78,5 +83,8 @@ namespace dotnet.DAL
 
         // One-to-Many: User -> Conversations
         public ICollection<Conversation> Conversations { get; set; } = new List<Conversation>();
+
+        // One-to-Many: User -> UserAdvice
+        public ICollection<UserAdvice> UserAdvices { get; set; } = new List<UserAdvice>();
     }
 }

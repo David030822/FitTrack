@@ -20,6 +20,7 @@ public class AppDbContext : DbContext{
     public DbSet<FollowingDAL> Followings { get; set; }
     public DbSet<Conversation> Conversations => Set<Conversation>();
     public DbSet<Message> Messages => Set<Message>();
+    public DbSet<UserAdvice> UserAdvices => Set<UserAdvice>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -164,5 +165,12 @@ public class AppDbContext : DbContext{
             .WithMany(c => c.Messages)
             .HasForeignKey(m => m.ConversationId)
             .OnDelete(DeleteBehavior.Cascade); // Delete messages when convo is deleted
+
+        // One-to-Many: User -> Conversations
+        modelBuilder.Entity<UserAdvice>()
+            .HasOne(a => a.User)
+            .WithMany(u => u.UserAdvices)
+            .HasForeignKey(a => a.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

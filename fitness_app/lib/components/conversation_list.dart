@@ -65,8 +65,8 @@ class ConversationListState extends State<ConversationList> {
           decoration: const InputDecoration(hintText: "Enter new title"),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
-          ElevatedButton(onPressed: () => Navigator.pop(context, controller.text), child: const Text("Save")),
+          MaterialButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+          MaterialButton(onPressed: () => Navigator.pop(context, controller.text), child: const Text("Save")),
         ],
       ),
     );
@@ -92,8 +92,8 @@ class ConversationListState extends State<ConversationList> {
         title: const Text("Delete Conversation"),
         content: const Text("Are you sure you want to delete this conversation?"),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel")),
-          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text("Delete")),
+          MaterialButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel")),
+          MaterialButton(onPressed: () => Navigator.pop(context, true), child: const Text("Delete")),
         ],
       ),
     );

@@ -62,7 +62,7 @@ class _ProfilePageState extends State<ProfilePage> {
       throw Exception("Invalid user ID");
     }
 
-    final fetchedUser = await ApiService.getUserData(userId, token);
+    final fetchedUser = await ApiService.getUserData();
     if (fetchedUser != null) {
       setState(() {
         _user = fetchedUser; // Update user object
