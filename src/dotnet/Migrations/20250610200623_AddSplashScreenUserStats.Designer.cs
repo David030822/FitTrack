@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using dotnet.Data;
@@ -11,9 +12,11 @@ using dotnet.Data;
 namespace dotnet.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250610200623_AddSplashScreenUserStats")]
+    partial class AddSplashScreenUserStats
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -254,11 +257,8 @@ namespace dotnet.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("UserID"));
 
-                    b.Property<int?>("Age")
+                    b.Property<int>("Age")
                         .HasColumnType("integer");
-
-                    b.Property<double?>("BodyFat")
-                        .HasColumnType("double precision");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -271,12 +271,14 @@ namespace dotnet.Migrations
                         .HasColumnType("character varying(50)");
 
                     b.Property<string>("Gender")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Goal")
+                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<double?>("Height")
+                    b.Property<double>("Height")
                         .HasColumnType("double precision");
 
                     b.Property<string>("LastName")
@@ -312,7 +314,7 @@ namespace dotnet.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<double?>("Weight")
+                    b.Property<double>("Weight")
                         .HasColumnType("double precision");
 
                     b.HasKey("UserID");
@@ -487,37 +489,6 @@ namespace dotnet.Migrations
                     b.ToTable("Messages");
                 });
 
-            modelBuilder.Entity("dotnet.Models.UserAdvice", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Advice")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Prompt")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserAdvices");
-                });
-
             modelBuilder.Entity("dotnet.DAL.CaloriesGoalsDAL", b =>
                 {
                     b.HasOne("dotnet.DAL.UserDAL", "User")
@@ -689,17 +660,6 @@ namespace dotnet.Migrations
                     b.Navigation("Conversation");
                 });
 
-            modelBuilder.Entity("dotnet.Models.UserAdvice", b =>
-                {
-                    b.HasOne("dotnet.DAL.UserDAL", "User")
-                        .WithMany("UserAdvices")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("dotnet.DAL.CaloriesDAL", b =>
                 {
                     b.Navigation("Meal");
@@ -731,8 +691,6 @@ namespace dotnet.Migrations
                     b.Navigation("Heatmaps");
 
                     b.Navigation("Meals");
-
-                    b.Navigation("UserAdvices");
 
                     b.Navigation("Workouts");
                 });

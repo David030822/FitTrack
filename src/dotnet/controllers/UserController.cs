@@ -99,6 +99,12 @@ namespace dotnet.Controllers
             user.LastName = updateDto.LastName ?? user.LastName;
             user.Username = updateDto.Username ?? user.Username;
             user.PhoneNum = updateDto.PhoneNum ?? user.PhoneNum;
+            user.Age = updateDto.Age ?? user.Age;
+            user.Gender = updateDto.Gender ?? user.Gender;
+            user.Height = updateDto.Height ?? user.Height;
+            user.Weight = updateDto.Weight ?? user.Weight;
+            user.BodyFat = updateDto.BodyFat ?? user.BodyFat;
+            user.Goal = updateDto.Goal ?? user.Goal;
             user.ProfilePhotoPath = updateDto.ProfileImagePath ?? user.ProfilePhotoPath;
 
             await _userService.UpdateUserAsync(id, UserConverter.FromUserDTOToUser(user));

@@ -114,7 +114,7 @@ class _MyDrawerState extends State<MyDrawer> {
                     }
 
                     // Fetch user data
-                    final user = await ApiService.getUserData(userId, token);
+                    final user = await ApiService.getUserData();
                     if (user != null) {
                       Navigator.push(
                         context,

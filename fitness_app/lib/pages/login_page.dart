@@ -6,12 +6,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fitness_app/components/my_button.dart';
 import 'package:fitness_app/components/my_text_field.dart';
 import 'package:fitness_app/components/square_tile.dart';
+import 'package:fitness_app/pages/complete_profile_page.dart';
 import 'package:fitness_app/pages/facebook_page.dart';
 import 'package:fitness_app/pages/forgot_password_page.dart';
 import 'package:fitness_app/pages/google_page.dart';
 import 'package:fitness_app/pages/home_page.dart';
 import 'package:fitness_app/pages/register_page.dart';
 import 'package:fitness_app/responsive/constants.dart';
+import 'package:fitness_app/services/api_service.dart';
+import 'package:fitness_app/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -94,15 +97,49 @@ class _LoginPageState extends State<LoginPage> {
 
       showSuccess("Login successful!");
 
-      // Navigate to HomePage
-      Future.delayed(Duration(milliseconds: 500), () {
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => HomePage()),
-          );
+      final userToken = await AuthService.getToken();
+      if (userToken == null) {
+        throw Exception("User is not logged in");
+      }
+
+      final userId = await AuthService.getUserIdFromToken(token);
+      if (userId == null) {
+        print('❌User ID is NULL!');
+        return;
+      }
+
+      final user = await ApiService.getUserData();
+
+      if (user != null) {
+        final isComplete = user.age != 0 &&
+                          user.gender?.isNotEmpty == true &&
+                          user.height != 0 &&
+                          user.weight != 0 &&
+                          user.bodyFat != 0 &&
+                          user.goal?.isNotEmpty == true;
+
+        if (isComplete) {
+          Future.delayed(Duration(milliseconds: 500), () {
+            if (mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => HomePage()),
+              );
+            }
+          });
+        } else {
+          Future.delayed(Duration(milliseconds: 500), () {
+            if (mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => CompleteProfileScreen()),
+              );
+            }
+          });
         }
-      });
+      } else {
+        showError('Failed to get user data!');
+      }
     } else {
       print("❌Login failed: ${response.body}");
       showError("Login failed! ${response.body}");

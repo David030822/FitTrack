@@ -48,6 +48,12 @@ namespace dotnet.Repositories
             existingUserDAL.LastName = updatedUser.LastName;
             existingUserDAL.Username = updatedUser.Username;
             existingUserDAL.Email = updatedUser.Email;
+            existingUserDAL.Age = updatedUser.Age ?? existingUserDAL.Age;
+            existingUserDAL.Gender = updatedUser.Gender;
+            existingUserDAL.Height = updatedUser.Height ?? existingUserDAL.Height;
+            existingUserDAL.Weight = updatedUser.Weight ?? existingUserDAL.Weight;
+            existingUserDAL.BodyFat = updatedUser.BodyFat ?? existingUserDAL.BodyFat;
+            existingUserDAL.Goal = updatedUser.Goal;
             existingUserDAL.PhoneNum = updatedUser.PhoneNum;
             existingUserDAL.ProfilePhotoPath = updatedUser.ProfilePhotoPath;
 

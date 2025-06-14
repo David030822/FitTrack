@@ -28,6 +28,12 @@ namespace dotnet.Services
                 LastName = user.LastName,
                 Email = user.Email,
                 PhoneNum = user.PhoneNum,   // 👈 DON'T FORGET THIS
+                Age = user.Age,
+                Gender = user.Gender,
+                Height = user.Height,
+                Weight = user.Weight,
+                BodyFat = user.BodyFat,
+                Goal = user.Goal,
                 Username = user.Username,   // 👈 THIS TOO
                 ProfilePhotoPath = user.ProfilePhotoPath  // 👈 AND THIS
             });
@@ -44,7 +50,13 @@ namespace dotnet.Services
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
-                PhoneNum = user.PhoneNum,   // 👈 DON'T FORGET THIS
+                PhoneNum = user.PhoneNum,
+                Age = user.Age,
+                Gender = user.Gender,
+                Height = user.Height,
+                Weight = user.Weight,
+                BodyFat = user.BodyFat,
+                Goal = user.Goal,
                 Username = user.Username,   // 👈 THIS TOO
                 ProfilePhotoPath = user.ProfilePhotoPath  // 👈 AND THIS
             };

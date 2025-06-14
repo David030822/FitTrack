@@ -206,5 +206,124 @@ namespace dotnet.Services
 
             return true;
         }
+
+        public async Task<UserAdviceDTO> GetPersonalizedAdviceAsync(int userId, string userInput)
+        {
+            var user = await _context.Users.FindAsync(userId);
+
+            if (user == null)
+                throw new Exception("User not found");
+
+            // Build prompt
+            var systemPrompt = _aiService.GetSystemPrompt();
+
+            var userPrompt = string.IsNullOrWhiteSpace(userInput) ? "" : userInput + "\n\n";
+
+            userPrompt += $@"
+            Here is my profile:
+            - Age: {user.Age}
+            - Gender: {user.Gender}
+            - Height: {user.Height} cm
+            - Weight: {user.Weight} kg
+            - Body Fat: {user.BodyFat} %
+            - Fitness Goal: {user.Goal}
+
+            Based on this data, tell me how do my numbers compare to each other and my goal.
+            Give me some tailored advice on how to use the FitTrack app effectively to reach my goal.
+            Keep it friendly and specific. Provide numbers and example training and meals too.
+            End with an estimate of how much time it will take to reach my goal.";
+
+            var context = new List<(string Role, string Content)>
+            {
+                ("system", systemPrompt),
+                ("user", userPrompt)
+            };
+
+            // Get AI reply
+            var aiReply = await _aiService.GetAIReplyAsync(context);
+
+            context.Add(("assistant", aiReply));
+            var title = await _aiService.GenerateConversationTitleAsync(context);
+
+            // Save advice
+            var advice = new UserAdvice
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                Prompt = userInput,
+                Advice = aiReply,
+                Title = title,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.UserAdvices.Add(advice);
+            await _context.SaveChangesAsync();
+
+            // Return DTO
+            return new UserAdviceDTO
+            {
+                Id = advice.Id,
+                Advice = aiReply,
+                Title = title,
+                CreatedAt = advice.CreatedAt
+            };
+        }
+
+        public async Task<UserAdviceDTO?> GetAdviceAsync(int userId, Guid adviceId)
+        {
+            var advice = await _context.UserAdvices
+                .FirstOrDefaultAsync(a => a.Id == adviceId && a.UserId == userId);
+
+            if (advice == null) return null;
+
+            return new UserAdviceDTO
+            {
+                Id = advice.Id,
+                Title = advice.Title,
+                Advice = advice.Advice,
+                CreatedAt = advice.CreatedAt
+            };
+        }
+
+        public async Task<List<UserAdviceDTO>> GetAllAdvicesAsync(int userId)
+        {
+            return await _context.UserAdvices
+                .Where(a => a.UserId == userId)
+                .OrderByDescending(a => a.CreatedAt)
+                .Select(a => new UserAdviceDTO
+                {
+                    Id = a.Id,
+                    Title = a.Title,
+                    Advice = a.Advice,
+                    CreatedAt = a.CreatedAt
+                })
+                .ToListAsync();
+        }
+
+        public async Task<bool> UpdateAdviceTitleAsync(int userId, Guid adviceId, string newTitle)
+        {
+            var advice = await _context.UserAdvices
+                .FirstOrDefaultAsync(a => a.Id == adviceId && a.UserId == userId);
+
+            if (advice == null) return false;
+
+            advice.Title = newTitle;
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<bool> DeleteAdviceAsync(int userId, Guid adviceId)
+        {
+            var advice = await _context.UserAdvices
+                .FirstOrDefaultAsync(a => a.Id == adviceId && a.UserId == userId);
+
+            if (advice == null) return false;
+
+            _context.UserAdvices.Remove(advice);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
     }
 }

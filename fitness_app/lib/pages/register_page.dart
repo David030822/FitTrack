@@ -5,7 +5,6 @@ import 'package:fitness_app/components/my_text_field.dart';
 import 'package:fitness_app/pages/login_page.dart';
 import 'package:fitness_app/responsive/constants.dart';
 import 'package:fitness_app/services/api_service.dart';
-import 'package:fitness_app/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -83,9 +82,7 @@ class _RegisterPageState extends State<RegisterPage> {
         //   );
         // }
         // After successful registration:
-        final token = await AuthService.getToken();
-        final userId = await AuthService.getUserIdFromToken(token!);
-        final user = await ApiService.getUserData(userId!, token);
+        final user = await ApiService.getUserData();
 
         if (user != null) {
           Navigator.pushReplacement(

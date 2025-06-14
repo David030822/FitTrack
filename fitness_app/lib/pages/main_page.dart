@@ -4,7 +4,9 @@ import 'package:fitness_app/components/floating_chat_icon.dart';
 import 'package:fitness_app/components/my_text_field.dart';
 import 'package:fitness_app/components/square_tile.dart';
 import 'package:fitness_app/components/streak_icon.dart';
+import 'package:fitness_app/components/user_info_card.dart';
 import 'package:fitness_app/models/calories_goals.dart';
+import 'package:fitness_app/models/user.dart';
 import 'package:fitness_app/models/weather_model.dart';
 import 'package:fitness_app/pages/training_page.dart';
 import 'package:fitness_app/services/api_service.dart';
@@ -26,6 +28,7 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   final api = ApiService();
+  late Future<User?> _userFuture;
   // text controller for calories
   final _caloriesController = TextEditingController();
   double? overallGoal;
@@ -33,6 +36,8 @@ class _MainPageState extends State<MainPage> {
   double? totalIntake;
   int? intakeStreakCount;
   int? burnStreakCount;
+
+  bool isEditing = false;
 
   // pedometer
   late Stream<StepCount> _stepCountStream;
@@ -85,12 +90,6 @@ class _MainPageState extends State<MainPage> {
       default:
         return 'assets/animations/sunny.json';
     }
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _caloriesController.dispose();
   }
 
   void onStepCount(StepCount event) {
@@ -227,8 +226,20 @@ class _MainPageState extends State<MainPage> {
     getTotalCaloriesIntake();
     getStreaks();
 
+    _userFuture = fetchUser();
+
     // fetch weather on startup
     _fetchWeather();
+  }
+
+  Future<User?> fetchUser() async {
+    return await ApiService.getUserData();
+  }
+  
+  @override
+  void dispose() {
+    super.dispose();
+    _caloriesController.dispose();
   }
 
   /// Helper Widget
@@ -259,317 +270,359 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      floatingActionButton: FloatingChatIcon(),
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+    return FutureBuilder<User?>(
+      future: _userFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return Center(child: Text('Error loading user data'));
+        }
+
+        var user = snapshot.data!;
+        return Scaffold(
+          floatingActionButton: FloatingChatIcon(),
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          // appBar: AppBar(
+          //   title: Text("FitTrack", style: TextStyle(color: Color(0xFFfc7905))),
+          //   backgroundColor: Colors.white,
+          //   elevation: 1,
+          //   actions: [
+          //     IconButton(
+          //       icon: Icon(isEditing ? Icons.check : Icons.edit, color: Color(0xFFfc7905)),
+          //       onPressed: () {
+          //         if (isEditing) {
+          //           setState(() => isEditing = false);
+          //         } else {
+          //           setState(() => isEditing = true);
+          //         }
+          //       },
+          //     ),
+          //   ],
+          // ),
+          body: SafeArea(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.pop(context);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => TrainingPage(),
-                              ),
-                            );
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 10.0),
-                            child: SquareTile(
-                              imagePath: 'assets/images/applogo_step_b.png',
-                              height: 50,
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(width: 10),
-
-                        Padding(
-                          padding: const EdgeInsets.only(right: 20.0),
-                          child: Text(
-                            'Home Page',
-                            style: GoogleFonts.dmSerifText(
-                              fontSize: 48,
-                              color: Theme.of(context).colorScheme.inversePrimary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 25),
-
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        streakIcon(intakeStreakCount ?? 0, 'intake'),
-                        const SizedBox(height: 8),
-                        streakIcon(burnStreakCount ?? 0, 'burn'),
-                      ],
-                    ),
-
-                    const SizedBox(height: 25),
-
-                    Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Daily Goal Input Card
-                      Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        elevation: 4,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: MyTextField(
-                                  controller: _caloriesController,
-                                  hintText: 'Overall goal',
-                                  obscureText: false,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.pop(context);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => TrainingPage(),
+                                  ),
+                                );
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.only(left: 10.0),
+                                child: SquareTile(
+                                  imagePath: 'assets/images/applogo_step_b.png',
+                                  height: 40,
                                 ),
                               ),
-                              const SizedBox(width: 10),
-                              CustomButton(
-                                color: Theme.of(context).colorScheme.tertiary,
-                                textColor: Theme.of(context).colorScheme.outline,
-                                onPressed: setDailyGoal,
-                                label: 'Confirm',
+                            ),
+
+                            const SizedBox(width: 10),
+
+                            Padding(
+                              padding: const EdgeInsets.only(right: 20.0),
+                              child: Text(
+                                'Home Page',
+                                style: GoogleFonts.dmSerifText(
+                                  fontSize: 40,
+                                  color: Theme.of(context).colorScheme.inversePrimary,
+                                ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ),
-                  
-                      // Goal Info Card
-                      Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        elevation: 2,
-                        child: Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Column(
-                            children: [
-                              _buildInfoRow('Today\'s goal :', overallGoal == null ? 'No goal set' : overallGoal!.toStringAsFixed(1)),
-                              const SizedBox(height: 10),
-                              _buildInfoRow('Progress:', getProgressText(totalIntake, totalBurnt)),
 
-                              const SizedBox(height: 10),
+                        const SizedBox(height: 25),
 
-                              // Progress with percentage and marker
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 10.0), // Extra padding vertically
-                                child: LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    final goal = overallGoal ?? 0;
-                                    final calories = (totalIntake ?? 0.0) - (totalBurnt ?? 0.0);
-                                    final progress = (goal == 0) ? 0.0 : (calories / goal).clamp(0.0, 1.0);
-                                    final percentage = (progress * 100).toInt();
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            streakIcon(intakeStreakCount ?? 0, 'intake'),
+                            const SizedBox(height: 8),
+                            streakIcon(burnStreakCount ?? 0, 'burn'),
+                          ],
+                        ),
 
-                                    return SizedBox(
-                                      height: 60, // <-- Give enough height for the % and dot
-                                      child: Stack(
-                                        alignment: Alignment.centerLeft,
-                                        children: [
-                                          // Background bar
-                                          Positioned(
-                                            top: 30, // Move it down to leave space above
-                                            child: Container(
-                                              height: 20,
-                                              width: constraints.maxWidth,
-                                              decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.circular(10),
-                                                color: Colors.grey.shade300,
-                                              ),
-                                            ),
-                                          ),
+                        const SizedBox(height: 25),
 
-                                          // Gradient bar
-                                          Positioned(
-                                            top: 30,
-                                            child: Container(
-                                              height: 20,
-                                              width: constraints.maxWidth * progress,
-                                              decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.circular(10),
-                                                gradient: const LinearGradient(
-                                                  colors: [Colors.red, Colors.orange, Colors.green],
-                                                  stops: [0.0, 0.5, 1.0],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-
-                                          // Floating percentage + dot
-                                          Positioned(
-                                            left: (constraints.maxWidth * progress).clamp(0, constraints.maxWidth - 50),
-                                            top: 0,
-                                            child: Transform.translate(
-                                              offset: const Offset(-20, 0), // Adjust this based on the width of your column
-                                              child: Column(
-                                                children: [
-                                                  Container(
-                                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.white,
-                                                      borderRadius: BorderRadius.circular(4),
-                                                      boxShadow: const [
-                                                        BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))
-                                                      ],
-                                                    ),
-                                                    child: Text(
-                                                      '$percentage%',
-                                                      style: const TextStyle(
-                                                        fontSize: 12,
-                                                        fontWeight: FontWeight.bold,
-                                                        color: Colors.black,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 5),
-                                                  Container(
-                                                    width: 10,
-                                                    height: 10,
-                                                    decoration: const BoxDecoration(
-                                                      color: Colors.black,
-                                                      shape: BoxShape.circle,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                        Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Daily Goal Input Card
+                          Card(
+                            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            elevation: 4,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Row(
                                 children: [
-                                  Text(
-                                    'Remaining: ',
-                                    style: GoogleFonts.dmSerifText(
-                                      fontSize: 24,
-                                      color: Theme.of(context).colorScheme.inversePrimary,
+                                  Expanded(
+                                    child: MyTextField(
+                                      controller: _caloriesController,
+                                      hintText: 'Overall goal',
+                                      obscureText: false,
                                     ),
                                   ),
-                                  Builder(
-                                    builder: (context) {
-                                      final caloriesRemaining = (overallGoal ?? 0) - ((totalIntake ?? 0) - (totalBurnt ?? 0));
-                                      return Text(
-                                        caloriesRemaining == 0
-                                            ? 'Done for today'
-                                            : caloriesRemaining.toStringAsFixed(1),
-                                        style: GoogleFonts.dmSerifText(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                          color: Theme.of(context).colorScheme.inversePrimary,
-                                        ),
-                                      );
-                                    },
+                                  const SizedBox(width: 10),
+                                  CustomButton(
+                                    color: Theme.of(context).colorScheme.tertiary,
+                                    textColor: Theme.of(context).colorScheme.outline,
+                                    onPressed: setDailyGoal,
+                                    label: 'Confirm',
                                   ),
                                 ],
                               ),
-                            ],
+                            ),
                           ),
-                        ),
+                      
+                          // Goal Info Card
+                          Card(
+                            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            elevation: 2,
+                            child: Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: Column(
+                                children: [
+                                  _buildInfoRow('Today\'s goal :', overallGoal == null ? 'No goal set' : overallGoal!.toStringAsFixed(1)),
+                                  const SizedBox(height: 10),
+                                  _buildInfoRow('Progress:', getProgressText(totalIntake, totalBurnt)),
+
+                                  const SizedBox(height: 10),
+
+                                  // Progress with percentage and marker
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 10.0), // Extra padding vertically
+                                    child: LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        final goal = overallGoal ?? 0;
+                                        final calories = (totalIntake ?? 0.0) - (totalBurnt ?? 0.0);
+                                        final progress = (goal == 0) ? 0.0 : (calories / goal).clamp(0.0, 1.0);
+                                        final percentage = (progress * 100).toInt();
+
+                                        return SizedBox(
+                                          height: 60, // <-- Give enough height for the % and dot
+                                          child: Stack(
+                                            alignment: Alignment.centerLeft,
+                                            children: [
+                                              // Background bar
+                                              Positioned(
+                                                top: 30, // Move it down to leave space above
+                                                child: Container(
+                                                  height: 20,
+                                                  width: constraints.maxWidth,
+                                                  decoration: BoxDecoration(
+                                                    borderRadius: BorderRadius.circular(10),
+                                                    color: Colors.grey.shade300,
+                                                  ),
+                                                ),
+                                              ),
+
+                                              // Gradient bar
+                                              Positioned(
+                                                top: 30,
+                                                child: Container(
+                                                  height: 20,
+                                                  width: constraints.maxWidth * progress,
+                                                  decoration: BoxDecoration(
+                                                    borderRadius: BorderRadius.circular(10),
+                                                    gradient: const LinearGradient(
+                                                      colors: [Colors.red, Colors.orange, Colors.green],
+                                                      stops: [0.0, 0.5, 1.0],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+
+                                              // Floating percentage + dot
+                                              Positioned(
+                                                left: (constraints.maxWidth * progress).clamp(0, constraints.maxWidth - 50),
+                                                top: 0,
+                                                child: Transform.translate(
+                                                  offset: const Offset(-20, 0), // Adjust this based on the width of your column
+                                                  child: Column(
+                                                    children: [
+                                                      Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                        decoration: BoxDecoration(
+                                                          color: Colors.white,
+                                                          borderRadius: BorderRadius.circular(4),
+                                                          boxShadow: const [
+                                                            BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))
+                                                          ],
+                                                        ),
+                                                        child: Text(
+                                                          '$percentage%',
+                                                          style: const TextStyle(
+                                                            fontSize: 12,
+                                                            fontWeight: FontWeight.bold,
+                                                            color: Colors.black,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      const SizedBox(height: 5),
+                                                      Container(
+                                                        width: 10,
+                                                        height: 10,
+                                                        decoration: const BoxDecoration(
+                                                          color: Colors.black,
+                                                          shape: BoxShape.circle,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'Remaining: ',
+                                        style: GoogleFonts.dmSerifText(
+                                          fontSize: 24,
+                                          color: Theme.of(context).colorScheme.inversePrimary,
+                                        ),
+                                      ),
+                                      Builder(
+                                        builder: (context) {
+                                          final caloriesRemaining = (overallGoal ?? 0) - ((totalIntake ?? 0) - (totalBurnt ?? 0));
+                                          return Text(
+                                            caloriesRemaining == 0
+                                                ? 'Done for today'
+                                                : caloriesRemaining.toStringAsFixed(1),
+                                            style: GoogleFonts.dmSerifText(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold,
+                                              color: Theme.of(context).colorScheme.inversePrimary,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
 
-                    const SizedBox(height: 20),
+                        const SizedBox(height: 20),
 
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // city name
-                        Text(
-                          _weather?.cityName ?? "Loading city...",
-                          style: TextStyle(fontSize: 20),
+                        UserInfoCard(
+                          user: user,
+                          onSave: (updatedUser) {
+                            setState(() {
+                              user = updatedUser;
+                            });
+                          },
                         ),
 
-                        // animation
-                        Lottie.asset(getWeatherAnimation(_weather?.mainCondition)),
+                        const SizedBox(height: 20),
 
-                        // temperature
-                        Text(
-                          '${_weather?.temperature.round()}°C',
-                          style: TextStyle(fontSize: 20),
-                        ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // city name
+                            Text(
+                              _weather?.cityName ?? "Loading city...",
+                              style: TextStyle(fontSize: 20),
+                            ),
 
-                        // weather condition
-                        Text(
-                          _weather?.mainCondition ?? "",
-                          style: TextStyle(fontSize: 20),
-                        ),
+                            // animation
+                            Lottie.asset(getWeatherAnimation(_weather?.mainCondition)),
+
+                            // temperature
+                            Text(
+                              '${_weather?.temperature.round()}°C',
+                              style: TextStyle(fontSize: 20),
+                            ),
+
+                            // weather condition
+                            Text(
+                              _weather?.mainCondition ?? "",
+                              style: TextStyle(fontSize: 20),
+                            ),
+                          ],
+                        )
                       ],
-                    )
+                    ),
+
+                    SizedBox(height: 20),
+
+                    // Pedometer Section
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: <Widget>[
+                          const Text(
+                            'Steps Taken',
+                            style: TextStyle(fontSize: 30),
+                          ),
+                          Text(
+                            _steps,
+                            style: const TextStyle(fontSize: 60),
+                          ),
+                          const Divider(
+                            height: 100,
+                            thickness: 0,
+                            color: Colors.white,
+                          ),
+                          const Text(
+                            'Pedestrian Status',
+                            style: TextStyle(fontSize: 30),
+                          ),
+                          Icon(
+                            _status == 'walking'
+                                ? Icons.directions_walk
+                                : _status == 'stopped'
+                                    ? Icons.accessibility_new
+                                    : Icons.error,
+                            size: 100,
+                          ),
+                          Center(
+                            child: Text(
+                              _status,
+                              style: _status == 'walking' || _status == 'stopped'
+                                  ? const TextStyle(fontSize: 30)
+                                  : const TextStyle(fontSize: 20, color: Colors.red),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
-
-                SizedBox(height: 20),
-
-                // Pedometer Section
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: <Widget>[
-                      const Text(
-                        'Steps Taken',
-                        style: TextStyle(fontSize: 30),
-                      ),
-                      Text(
-                        _steps,
-                        style: const TextStyle(fontSize: 60),
-                      ),
-                      const Divider(
-                        height: 100,
-                        thickness: 0,
-                        color: Colors.white,
-                      ),
-                      const Text(
-                        'Pedestrian Status',
-                        style: TextStyle(fontSize: 30),
-                      ),
-                      Icon(
-                        _status == 'walking'
-                            ? Icons.directions_walk
-                            : _status == 'stopped'
-                                ? Icons.accessibility_new
-                                : Icons.error,
-                        size: 100,
-                      ),
-                      Center(
-                        child: Text(
-                          _status,
-                          style: _status == 'walking' || _status == 'stopped'
-                              ? const TextStyle(fontSize: 30)
-                              : const TextStyle(fontSize: 20, color: Colors.red),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

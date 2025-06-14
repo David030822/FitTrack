@@ -11,7 +11,16 @@ import '../models/user.dart';
 class ApiService {
   static const String baseUrl = BASE_URL;  // 1
   // static const String baseUrl = BASE_URL;  // 2
-  static Future<User?> getUserData(int userId, String token) async {
+  static Future<User?> getUserData() async {
+    final token = await AuthService.getToken();
+    if (token == null) {
+      throw Exception("User is not logged in");
+    }
+
+    final userId = await AuthService.getUserIdFromToken(token);
+    if (userId == null) {
+      return null;
+    }
     final url = Uri.parse('$baseUrl/api/users/$userId');
     final response = await http.get(url, headers: {
       'Authorization': 'Bearer $token',
@@ -28,7 +37,17 @@ class ApiService {
     }
   }
 
-  static Future<bool> updateUserData(int userId, Map<String, dynamic> updatedUser, String token) async {
+  static Future<bool> updateUserData(Map<String, dynamic> updatedUser) async {
+    final token = await AuthService.getToken();
+    if (token == null) {
+      throw Exception("User is not logged in");
+    }
+
+    final userId = await AuthService.getUserIdFromToken(token);
+    if (userId == null) {
+      return false;
+    }
+
     var url = Uri.parse('$baseUrl/api/users/$userId');
     var response = await http.put(
       url,

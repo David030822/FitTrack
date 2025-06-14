@@ -6,6 +6,7 @@ import 'package:fitness_app/database/goal_database.dart';
 import 'package:fitness_app/firebase_options.dart';
 import 'package:fitness_app/network/apiclient.dart';
 import 'package:fitness_app/pages/auth_page.dart';
+import 'package:fitness_app/pages/complete_profile_page.dart';
 import 'package:fitness_app/pages/home_page.dart';
 import 'package:fitness_app/pages/login_page.dart';
 import 'package:fitness_app/pages/notification_page.dart';
@@ -78,6 +79,7 @@ class MyApp extends StatelessWidget {
         '/training_page': (context) => const TrainingPage(),
         '/noti_screen': (context) => const NotificationPage(),
         '/home': (context) => const HomePage(),
+        '/complete-profile': (context) => CompleteProfileScreen(),
       },
     );
   }
