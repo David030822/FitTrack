@@ -130,8 +130,8 @@ class _UserInfoCardState extends State<UserInfoCard> {
                 : _buildRow("Weight", "${widget.user.weight} kg"),
 
             isEditing
-                ? _buildField("Body fat", bodyFatController)
-                : _buildRow("Body fat", widget.user.bodyFat.toString()),
+                ? _buildField("Body fat %", bodyFatController)
+                : _buildRow("Body fat %", widget.user.bodyFat.toString()),
 
             isEditing
                 ? _buildField("Goal", goalController)

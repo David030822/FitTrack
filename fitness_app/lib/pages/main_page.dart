@@ -317,7 +317,6 @@ class _MainPageState extends State<MainPage> {
                           children: [
                             GestureDetector(
                               onTap: () {
-                                Navigator.pop(context);
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
