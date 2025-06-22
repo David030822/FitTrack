@@ -221,6 +221,116 @@ namespace dotnet.Migrations
                     b.ToTable("Meals");
                 });
 
+            modelBuilder.Entity("dotnet.DAL.MealLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("MealId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MealId");
+
+                    b.ToTable("MealLog");
+                });
+
+            modelBuilder.Entity("dotnet.DAL.MealScheduleDAL", b =>
+                {
+                    b.Property<int>("MealScheduleID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MealScheduleID"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("text");
+
+                    b.Property<int>("UserID")
+                        .HasColumnType("integer");
+
+                    b.HasKey("MealScheduleID");
+
+                    b.HasIndex("UserID");
+
+                    b.ToTable("MealSchedules");
+                });
+
+            modelBuilder.Entity("dotnet.DAL.MealScheduleDayDAL", b =>
+                {
+                    b.Property<int>("MealScheduleDayID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MealScheduleDayID"));
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsCheatDay")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("MealScheduleID")
+                        .HasColumnType("integer");
+
+                    b.HasKey("MealScheduleDayID");
+
+                    b.HasIndex("MealScheduleID");
+
+                    b.ToTable("MealScheduleDays");
+                });
+
+            modelBuilder.Entity("dotnet.DAL.PlannedMealDAL", b =>
+                {
+                    b.Property<int>("PlannedMealID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PlannedMealID"));
+
+                    b.Property<int?>("Calories")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<int>("MealScheduleDayID")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("MealType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<TimeOnly>("Time")
+                        .HasColumnType("time without time zone");
+
+                    b.HasKey("PlannedMealID");
+
+                    b.HasIndex("MealScheduleDayID");
+
+                    b.ToTable("PlannedMeals");
+                });
+
             modelBuilder.Entity("dotnet.DAL.StepsDAL", b =>
                 {
                     b.Property<int>("StepsID")
@@ -608,6 +718,50 @@ namespace dotnet.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("dotnet.DAL.MealLog", b =>
+                {
+                    b.HasOne("dotnet.DAL.PlannedMealDAL", "Meal")
+                        .WithMany()
+                        .HasForeignKey("MealId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Meal");
+                });
+
+            modelBuilder.Entity("dotnet.DAL.MealScheduleDAL", b =>
+                {
+                    b.HasOne("dotnet.DAL.UserDAL", "User")
+                        .WithMany("MealSchedules")
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("dotnet.DAL.MealScheduleDayDAL", b =>
+                {
+                    b.HasOne("dotnet.DAL.MealScheduleDAL", "MealSchedule")
+                        .WithMany("Days")
+                        .HasForeignKey("MealScheduleID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MealSchedule");
+                });
+
+            modelBuilder.Entity("dotnet.DAL.PlannedMealDAL", b =>
+                {
+                    b.HasOne("dotnet.DAL.MealScheduleDayDAL", "MealScheduleDay")
+                        .WithMany("PlannedMeals")
+                        .HasForeignKey("MealScheduleDayID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MealScheduleDay");
+                });
+
             modelBuilder.Entity("dotnet.DAL.StepsDAL", b =>
                 {
                     b.HasOne("dotnet.DAL.CaloriesDAL", "Calories")
@@ -714,6 +868,16 @@ namespace dotnet.Migrations
                     b.Navigation("GoalChecked");
                 });
 
+            modelBuilder.Entity("dotnet.DAL.MealScheduleDAL", b =>
+                {
+                    b.Navigation("Days");
+                });
+
+            modelBuilder.Entity("dotnet.DAL.MealScheduleDayDAL", b =>
+                {
+                    b.Navigation("PlannedMeals");
+                });
+
             modelBuilder.Entity("dotnet.DAL.UserDAL", b =>
                 {
                     b.Navigation("CaloriesGoals");
@@ -729,6 +893,8 @@ namespace dotnet.Migrations
                     b.Navigation("Goals");
 
                     b.Navigation("Heatmaps");
+
+                    b.Navigation("MealSchedules");
 
                     b.Navigation("Meals");
 

@@ -1,4 +1,5 @@
 import 'package:fitness_app/components/food_tile.dart';
+import 'package:fitness_app/components/meal_action_card.dart';
 import 'package:fitness_app/components/my_text_field.dart';
 import 'package:fitness_app/models/calories_goals.dart';
 import 'package:fitness_app/models/meal.dart';
@@ -554,6 +555,10 @@ class _FoodPageState extends State<FoodPage> {
                       ),
                     ],
                   ),
+
+                  const SizedBox(height: 10),
+
+                  const MealActionCard(),
         
                   const SizedBox(height: 20),
         
