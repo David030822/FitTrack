@@ -30,9 +30,22 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     _heightController.text = user.height.toString();
     _weightController.text = user.weight.toString();
     _bodyFatController.text = user.bodyFat?.toString() ?? '';
-    _selectedGender = user.gender;
-    _selectedGoal = user.goal;
+
+    // Normalize and assign only if value exists in the list
+    // final normalizedGender = _normalizeMatch(user.gender, genders);
+    // final normalizedGoal = _normalizeMatch(user.goal, goals);
+
+    // _selectedGender = normalizedGender;
+    // _selectedGoal = normalizedGoal;
   }
+
+  // String? _normalizeMatch(String? input, List<String> options) {
+  //   if (input == null) return null;
+  //   return options.firstWhere(
+  //     (option) => option.toLowerCase() == input.toLowerCase(),
+  //     orElse: () => '',
+  //   );
+  // }
 
   @override
   void initState() {

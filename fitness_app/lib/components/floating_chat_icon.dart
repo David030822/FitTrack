@@ -10,6 +10,7 @@ class FloatingChatIcon extends StatelessWidget {
       bottom: 16,
       right: 16,
       child: FloatingActionButton(
+        backgroundColor: Colors.blue,
         onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatPage())),
         child: const Icon(Icons.chat),
       ),

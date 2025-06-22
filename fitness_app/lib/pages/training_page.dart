@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 import 'package:fitness_app/components/my_text_field.dart';
 import 'package:fitness_app/models/calories_goals.dart';
+import 'package:fitness_app/pages/home_page.dart';
 import 'package:fitness_app/responsive/constants.dart';
 import 'package:fitness_app/services/api_service.dart';
 import 'package:fitness_app/util/custom_button.dart';
@@ -572,6 +573,10 @@ class _TrainingPageState extends State<TrainingPage> {
                                                   }
 
                                                   Navigator.pop(context);
+                                                  Navigator.pushReplacement(
+                                                    context,
+                                                    MaterialPageRoute(builder: (context) => HomePage()),
+                                                  );
                                                 } else {
                                                   // handle error
                                                   print("❌Failed to update workout");
