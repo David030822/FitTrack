@@ -24,10 +24,16 @@ builder.Services.AddScoped<IMealService, MealService>();
 builder.Services.AddScoped<ICaloriesGoalsRepository, CaloriesGoalsRepository>();
 builder.Services.AddHttpClient<AIAssistantService>();
 builder.Services.AddScoped<ChatService>();
+
 builder.Services.AddScoped<IMealScheduleRepository, MealScheduleRepository>();
 builder.Services.AddScoped<IMealScheduleDayRepository, MealScheduleDayRepository>();
 builder.Services.AddScoped<IPlannedMealRepository, PlannedMealRepository>();
 builder.Services.AddScoped<IMealScheduleService, MealScheduleService>();
+
+builder.Services.AddScoped<IWorkoutScheduleRepository, WorkoutScheduleRepository>();
+builder.Services.AddScoped<IWorkoutScheduleDayRepository, WorkoutScheduleDayRepository>();
+builder.Services.AddScoped<IPlannedWorkoutRepository, PlannedWorkoutRepository>();
+builder.Services.AddScoped<IWorkoutScheduleService, WorkoutScheduleService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("postgreDb")));

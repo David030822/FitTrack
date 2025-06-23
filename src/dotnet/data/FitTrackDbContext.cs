@@ -25,6 +25,9 @@ public class AppDbContext : DbContext{
     public DbSet<MealScheduleDayDAL> MealScheduleDays { get; set; }
     public DbSet<PlannedMealDAL> PlannedMeals { get; set; }
     public DbSet<MealLog> MealLogs { get; set; }
+    public DbSet<WorkoutScheduleDAL> WorkoutSchedules { get; set; }
+    public DbSet<WorkoutScheduleDayDAL> WorkoutScheduleDays { get; set; }
+    public DbSet<PlannedWorkoutDAL> PlannedWorkouts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -203,6 +206,27 @@ public class AppDbContext : DbContext{
             .HasOne(log => log.Meal)
             .WithMany()
             .HasForeignKey(log => log.MealId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // User → WorkoutSchedule (One-to-Many)
+        modelBuilder.Entity<WorkoutScheduleDAL>()
+            .HasOne(ws => ws.User)
+            .WithMany(u => u.WorkoutSchedules)
+            .HasForeignKey(ws => ws.UserID)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // WorkoutSchedule → WorkoutScheduleDay (One-to-Many)
+        modelBuilder.Entity<WorkoutScheduleDayDAL>()
+            .HasOne(day => day.WorkoutSchedule)
+            .WithMany(ws => ws.Days)
+            .HasForeignKey(day => day.WorkoutScheduleID)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // WorkoutScheduleDay → PlannedWorkout (One-to-Many)
+        modelBuilder.Entity<PlannedWorkoutDAL>()
+            .HasOne(pw => pw.WorkoutScheduleDay)
+            .WithMany(day => day.PlannedWorkouts)
+            .HasForeignKey(pw => pw.WorkoutScheduleDayID)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

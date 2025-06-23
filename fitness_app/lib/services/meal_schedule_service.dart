@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:fitness_app/models/schedule_models.dart';
+import 'package:fitness_app/models/meal_schedule_models.dart';
 import 'package:fitness_app/responsive/constants.dart';
 import 'package:fitness_app/services/auth_service.dart';
 import 'package:http/http.dart' as http;

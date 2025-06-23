@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 import 'package:fitness_app/components/my_text_field.dart';
+import 'package:fitness_app/components/workout_action_card.dart';
 import 'package:fitness_app/models/calories_goals.dart';
 import 'package:fitness_app/pages/home_page.dart';
 import 'package:fitness_app/responsive/constants.dart';
@@ -307,6 +308,10 @@ class _TrainingPageState extends State<TrainingPage> {
                       ),
                     ],
                   ),
+
+                  const SizedBox(height: 10),
+
+                  WorkoutActionCard(),
             
                   const SizedBox(height: 20),
                   

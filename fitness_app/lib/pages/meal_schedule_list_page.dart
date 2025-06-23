@@ -1,4 +1,4 @@
-import 'package:fitness_app/models/schedule_models.dart';
+import 'package:fitness_app/models/meal_schedule_models.dart';
 import 'package:fitness_app/services/auth_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
