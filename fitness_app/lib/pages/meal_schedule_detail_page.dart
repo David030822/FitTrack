@@ -1,4 +1,4 @@
-import 'package:fitness_app/models/schedule_models.dart';
+import 'package:fitness_app/models/meal_schedule_models.dart';
 import 'package:fitness_app/pages/meal_schedule_day_page.dart';
 import 'package:fitness_app/services/meal_schedule_service.dart';
 import 'package:flutter/material.dart';
