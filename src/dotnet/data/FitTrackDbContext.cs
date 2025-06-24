@@ -28,6 +28,7 @@ public class AppDbContext : DbContext{
     public DbSet<WorkoutScheduleDAL> WorkoutSchedules { get; set; }
     public DbSet<WorkoutScheduleDayDAL> WorkoutScheduleDays { get; set; }
     public DbSet<PlannedWorkoutDAL> PlannedWorkouts { get; set; }
+    public DbSet<MealAdviceDAL> UserMealAdvices => Set<MealAdviceDAL>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -173,11 +174,18 @@ public class AppDbContext : DbContext{
             .HasForeignKey(m => m.ConversationId)
             .OnDelete(DeleteBehavior.Cascade); // Delete messages when convo is deleted
 
-        // One-to-Many: User -> Conversations
+        // One-to-Many: User -> UserAdvice
         modelBuilder.Entity<UserAdvice>()
             .HasOne(a => a.User)
             .WithMany(u => u.UserAdvices)
             .HasForeignKey(a => a.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // One-to-Many: User -> UserMealPlan
+        modelBuilder.Entity<MealAdviceDAL>()
+            .HasOne(m => m.User)
+            .WithMany(u => u.UserMealAdvices)
+            .HasForeignKey(m => m.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // User → MealSchedule

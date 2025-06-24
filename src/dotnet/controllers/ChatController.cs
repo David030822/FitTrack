@@ -1,3 +1,4 @@
+using dotnet.DTOs;
 using dotnet.Helper;
 using dotnet.Models;
 using dotnet.Services;
@@ -10,7 +11,6 @@ namespace dotnet.Controllers
     public class ChatController : ControllerBase
     {
         private readonly ChatService _chatService;
-        private readonly UserService _userService;
 
         public ChatController(ChatService chatService)
         {
@@ -95,6 +95,49 @@ namespace dotnet.Controllers
         public async Task<IActionResult> DeleteAdvice(int userId, Guid adviceId)
         {
             var success = await _chatService.DeleteAdviceAsync(userId, adviceId);
+            return success ? Ok() : NotFound();
+        }
+
+        // POST: api/PersonalizedMealPlan/personal-meal-plan
+        [HttpPost("personal-meal-plan")]
+        public async Task<IActionResult> GetPersonalizedMealPlan([FromBody] MealPlanRequestDTO mealPlanRequest)
+        {
+            var plan = await _chatService.GetPersonalizedMealPlanAsync(mealPlanRequest);
+            return Ok(plan);
+        }
+
+        // GET: api/PersonalizedMealPlan/{userId}/mealplans
+        [HttpGet("{userId}/mealplans")]
+        public async Task<ActionResult<List<UserMealPlanDTO>>> GetAllUserMealPlans(int userId)
+        {
+            var mealPlans = await _chatService.GetAllMealPlansAsync(userId);
+            return Ok(mealPlans);
+        }
+
+        // GET: api/PersonalizedMealPlan/{userId}/mealplan/{mealPlanId}
+        [HttpGet("{userId}/mealplan/{mealPlanId}")]
+        public async Task<ActionResult<UserMealPlanDTO>> GetMealPlanById(int userId, Guid mealPlanId)
+        {
+            var mealPlan = await _chatService.GetMealPlanAsync(userId, mealPlanId);
+            if (mealPlan == null)
+                return NotFound();
+
+            return Ok(mealPlan);
+        }
+
+        // PUT: api/PersonalizedMealPlan/{userId}/mealplans/{mealPlanId}/title
+        [HttpPut("{userId}/mealplans/{mealPlanId}/title")]
+        public async Task<IActionResult> UpdateMealPlanTitle(int userId, Guid mealPlanId, [FromBody] UpdateTitleRequest request)
+        {
+            var success = await _chatService.UpdateMealPlanTitleAsync(userId, mealPlanId, request.NewTitle);
+            return success ? Ok() : NotFound();
+        }
+
+        // DELETE: api/PersonalizedMealPlan/{userId}/mealplans/{mealPlanId}/delete
+        [HttpDelete("{userId}/mealplans/{mealPlanId}/delete")]
+        public async Task<IActionResult> DeleteMealPlan(int userId, Guid mealPlanId)
+        {
+            var success = await _chatService.DeleteMealPlanAsync(userId, mealPlanId);
             return success ? Ok() : NotFound();
         }
     }
