@@ -88,5 +88,7 @@ namespace dotnet.DAL
         public ICollection<UserAdvice> UserAdvices { get; set; } = new List<UserAdvice>();
         public ICollection<MealScheduleDAL> MealSchedules { get; set; }
         public ICollection<WorkoutScheduleDAL> WorkoutSchedules { get; set; }
+        // One-to-Many: User -> UserMealAdvice
+        public ICollection<MealAdviceDAL> UserMealAdvices { get; set; } = new List<MealAdviceDAL>();
     }
 }

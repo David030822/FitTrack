@@ -1,6 +1,6 @@
-namespace dotnet.Models;
+namespace dotnet.DTOs;
 
-public class UserAdviceDTO
+public class UserMealPlanDTO
 {
     public Guid Id { get; set; }
     public string Advice { get; set; }

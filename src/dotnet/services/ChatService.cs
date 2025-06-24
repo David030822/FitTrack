@@ -1,4 +1,5 @@
 using dotnet.Data;
+using dotnet.DTOs;
 using dotnet.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -321,6 +322,129 @@ namespace dotnet.Services
             if (advice == null) return false;
 
             _context.UserAdvices.Remove(advice);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<UserMealPlanDTO> GetPersonalizedMealPlanAsync(MealPlanRequestDTO request)
+        {
+            var user = await _context.Users.FindAsync(request.UserId);
+            if (user == null)
+                throw new Exception("User not found");
+
+            // Build prompt
+            var systemPrompt = _aiService.GetSystemPrompt();
+
+            var userPrompt = $@"
+            Create a personalized meal plan for the following profile:
+            - Age: {user.Age}
+            - Gender: {user.Gender}
+            - Height: {user.Height} cm
+            - Weight: {user.Weight} kg
+            - Body Fat: {user.BodyFat} %
+            - Goal: {user.Goal}
+            - Diet Type: {request.DietType}
+            - Meal Type: {request.MealType}
+            - Meals per Day: {request.NumberOfMeals}
+            - Duration: {request.NumberOfDays} day(s)
+            - Calories per Day: {request.Calories} kcal
+            - Notes: {request.UserInput}
+
+            Make the meals realistic and easy to prepare, and include portion sizes, macros, calories and timing.
+            At the start of the plan include the user input starting with 'Diet type' and finishing with 'Calories'.
+            If the user input does not include some points, leave them out.
+            Also take into consideration the user's age, gender, height, weight, body fat and goal.
+            Create the diet, so that the total calories per day match the user's input. Format by day and meal.
+            Include all days e.g. If duration is 7 days, include all 7 days: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday.
+            Give a summary at the end of the plan: total macros and calories for each day and overall.
+            ";
+
+            var context = new List<(string Role, string Content)>
+            {
+                ("system", systemPrompt),
+                ("user", userPrompt)
+            };
+
+            var aiReply = await _aiService.GetAIReplyAsync(context);
+            context.Add(("assistant", aiReply));
+
+            var title = await _aiService.GenerateConversationTitleAsync(context);
+
+            var mealPlan = new MealAdviceDAL
+            {
+                Id = Guid.NewGuid(),
+                UserId = request.UserId,
+                Prompt = request.UserInput,
+                Advice = aiReply,
+                Title = title,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.UserMealAdvices.Add(mealPlan);
+            await _context.SaveChangesAsync();
+
+            return new UserMealPlanDTO
+            {
+                Id = mealPlan.Id,
+                Title = title,
+                Advice = aiReply,
+                CreatedAt = mealPlan.CreatedAt
+            };
+        }
+
+        public async Task<UserMealPlanDTO?> GetMealPlanAsync(int userId, Guid mealPlanId)
+        {
+            var plan = await _context.UserMealAdvices
+                .FirstOrDefaultAsync(p => p.Id == mealPlanId && p.UserId == userId);
+
+            if (plan == null) return null;
+
+            return new UserMealPlanDTO
+            {
+                Id = plan.Id,
+                Title = plan.Title,
+                Advice = plan.Advice,
+                CreatedAt = plan.CreatedAt
+            };
+        }
+
+        public async Task<List<UserMealPlanDTO>> GetAllMealPlansAsync(int userId)
+        {
+            return await _context.UserMealAdvices
+                .Where(p => p.UserId == userId)
+                .OrderByDescending(p => p.CreatedAt)
+                .Select(p => new UserMealPlanDTO
+                {
+                    Id = p.Id,
+                    Title = p.Title,
+                    Advice = p.Advice,
+                    CreatedAt = p.CreatedAt
+                })
+                .ToListAsync();
+        }
+
+        public async Task<bool> UpdateMealPlanTitleAsync(int userId, Guid mealPlanId, string newTitle)
+        {
+            var plan = await _context.UserMealAdvices
+                .FirstOrDefaultAsync(p => p.Id == mealPlanId && p.UserId == userId);
+
+            if (plan == null) return false;
+
+            plan.Title = newTitle;
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<bool> DeleteMealPlanAsync(int userId, Guid mealPlanId)
+        {
+            var plan = await _context.UserMealAdvices
+                .FirstOrDefaultAsync(p => p.Id == mealPlanId && p.UserId == userId);
+
+            if (plan == null) return false;
+
+            _context.UserMealAdvices.Remove(plan);
             await _context.SaveChangesAsync();
 
             return true;

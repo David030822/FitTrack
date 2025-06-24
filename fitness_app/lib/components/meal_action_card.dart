@@ -1,3 +1,4 @@
+import 'package:fitness_app/pages/meal_advice_page.dart';
 import 'package:fitness_app/pages/meal_schedule_list_page.dart';
 import 'package:flutter/material.dart';
 
@@ -49,11 +50,10 @@ class MealActionCard extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      // 🧠 Hook up AI Meal Plan later
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(builder: (_) => AIMealPlanPage()),
-                      // );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const MealPlanPage()),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
