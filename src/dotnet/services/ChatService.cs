@@ -1,3 +1,4 @@
+using dotnet.DAL;
 using dotnet.Data;
 using dotnet.DTOs;
 using dotnet.Models;
@@ -445,6 +446,127 @@ namespace dotnet.Services
             if (plan == null) return false;
 
             _context.UserMealAdvices.Remove(plan);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<UserWorkoutPlanDTO> GetPersonalizedWorkoutPlanAsync(WorkoutPlanRequestDTO request)
+        {
+            var user = await _context.Users.FindAsync(request.UserId);
+            if (user == null)
+                throw new Exception("User not found");
+
+            // Build prompt
+            var systemPrompt = _aiService.GetSystemPrompt();
+
+            var userPrompt = $@"
+            Create a personalized workout plan for the following profile:
+            - Age: {user.Age}
+            - Gender: {user.Gender}
+            - Height: {user.Height} cm
+            - Weight: {user.Weight} kg
+            - Body Fat: {user.BodyFat} %
+            - Goal: {user.Goal}
+            - Workout Type: {request.WorkoutType}
+            - Number of Exercises: {request.NumberOfExercises}
+            - Duration per Workout: {request.Duration} minutes
+            - Difficulty: {request.Difficulty}
+            - Focus: {request.ExerciseFocus}
+            - Notes: {request.UserInput}
+
+            The plan should be:
+            Start with a summary of the user's input from workout type to focus.
+            Format the plan for a single day. Include all exercises for the day with the number of sets, reps, rest times, and targeted muscle groups.
+            Include warm-up and cooldown tips if needed. Make sure it matches the goal, fitness level, and workout type.
+            End with a summary of the plan, including total duration, volume and training focus.
+            ";
+
+            var context = new List<(string Role, string Content)>
+            {
+                ("system", systemPrompt),
+                ("user", userPrompt)
+            };
+
+            var aiReply = await _aiService.GetAIReplyAsync(context);
+            context.Add(("assistant", aiReply));
+
+            var title = await _aiService.GenerateConversationTitleAsync(context);
+
+            var workoutPlan = new WorkoutPlanDAL
+            {
+                Id = Guid.NewGuid(),
+                UserId = request.UserId,
+                Prompt = request.UserInput,
+                Advice = aiReply,
+                Title = title,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.UserWorkoutPlans.Add(workoutPlan);
+            await _context.SaveChangesAsync();
+
+            return new UserWorkoutPlanDTO
+            {
+                Id = workoutPlan.Id,
+                Title = title,
+                Advice = aiReply,
+                CreatedAt = workoutPlan.CreatedAt
+            };
+        }
+
+        public async Task<UserWorkoutPlanDTO?> GetWorkoutPlanAsync(int userId, Guid workoutPlanId)
+        {
+            var plan = await _context.UserWorkoutPlans
+                .FirstOrDefaultAsync(p => p.Id == workoutPlanId && p.UserId == userId);
+
+            if (plan == null) return null;
+
+            return new UserWorkoutPlanDTO
+            {
+                Id = plan.Id,
+                Title = plan.Title,
+                Advice = plan.Advice,
+                CreatedAt = plan.CreatedAt
+            };
+        }
+
+        public async Task<List<UserWorkoutPlanDTO>> GetAllWorkoutPlansAsync(int userId)
+        {
+            return await _context.UserWorkoutPlans
+                .Where(p => p.UserId == userId)
+                .OrderByDescending(p => p.CreatedAt)
+                .Select(p => new UserWorkoutPlanDTO
+                {
+                    Id = p.Id,
+                    Title = p.Title,
+                    Advice = p.Advice,
+                    CreatedAt = p.CreatedAt
+                })
+                .ToListAsync();
+        }
+
+        public async Task<bool> UpdateWorkoutPlanTitleAsync(int userId, Guid workoutPlanId, string newTitle)
+        {
+            var plan = await _context.UserWorkoutPlans
+                .FirstOrDefaultAsync(p => p.Id == workoutPlanId && p.UserId == userId);
+
+            if (plan == null) return false;
+
+            plan.Title = newTitle;
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<bool> DeleteWorkoutPlanAsync(int userId, Guid workoutPlanId)
+        {
+            var plan = await _context.UserWorkoutPlans
+                .FirstOrDefaultAsync(p => p.Id == workoutPlanId && p.UserId == userId);
+
+            if (plan == null) return false;
+
+            _context.UserWorkoutPlans.Remove(plan);
             await _context.SaveChangesAsync();
 
             return true;

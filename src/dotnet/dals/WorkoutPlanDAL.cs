@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace dotnet.DAL;
 
-public class MealAdviceDAL
+public class WorkoutPlanDAL
 {
     [Key]
     public Guid Id { get; set; }

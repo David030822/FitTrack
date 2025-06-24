@@ -140,5 +140,48 @@ namespace dotnet.Controllers
             var success = await _chatService.DeleteMealPlanAsync(userId, mealPlanId);
             return success ? Ok() : NotFound();
         }
+
+        // POST: api/PersonalizedWorkoutPlan/personal-workout-plan
+        [HttpPost("personal-workout-plan")]
+        public async Task<IActionResult> GetPersonalizedWorkoutPlan([FromBody] WorkoutPlanRequestDTO workoutPlanRequest)
+        {
+            var plan = await _chatService.GetPersonalizedWorkoutPlanAsync(workoutPlanRequest);
+            return Ok(plan);
+        }
+
+        // GET: api/PersonalizedWorkoutPlan/{userId}/workoutplans
+        [HttpGet("{userId}/workoutplans")]
+        public async Task<ActionResult<List<UserWorkoutPlanDTO>>> GetAllUserWorkoutPlans(int userId)
+        {
+            var workoutPlans = await _chatService.GetAllWorkoutPlansAsync(userId);
+            return Ok(workoutPlans);
+        }
+
+        // GET: api/PersonalizedWorkoutPlan/{userId}/workoutplan/{workoutPlanId}
+        [HttpGet("{userId}/workoutplan/{workoutPlanId}")]
+        public async Task<ActionResult<UserWorkoutPlanDTO>> GetWorkoutPlanById(int userId, Guid workoutPlanId)
+        {
+            var workoutPlan = await _chatService.GetWorkoutPlanAsync(userId, workoutPlanId);
+            if (workoutPlan == null)
+                return NotFound();
+
+            return Ok(workoutPlan);
+        }
+
+        // PUT: api/PersonalizedWorkoutPlan/{userId}/workoutplans/{workoutPlanId}/title
+        [HttpPut("{userId}/workoutplans/{workoutPlanId}/title")]
+        public async Task<IActionResult> UpdateWorkoutPlanTitle(int userId, Guid workoutPlanId, [FromBody] UpdateTitleRequest request)
+        {
+            var success = await _chatService.UpdateWorkoutPlanTitleAsync(userId, workoutPlanId, request.NewTitle);
+            return success ? Ok() : NotFound();
+        }
+
+        // DELETE: api/PersonalizedWorkoutPlan/{userId}/workoutplans/{workoutPlanId}/delete
+        [HttpDelete("{userId}/workoutplans/{workoutPlanId}/delete")]
+        public async Task<IActionResult> DeleteWorkoutPlan(int userId, Guid workoutPlanId)
+        {
+            var success = await _chatService.DeleteWorkoutPlanAsync(userId, workoutPlanId);
+            return success ? Ok() : NotFound();
+        }
     }
 }
