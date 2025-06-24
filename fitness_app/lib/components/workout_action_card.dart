@@ -1,3 +1,4 @@
+import 'package:fitness_app/pages/workout_plan_page.dart';
 import 'package:flutter/material.dart';
 import 'package:fitness_app/pages/workout_schedule_list_page.dart';
 // import 'package:fitness_app/pages/ai_workout_plan_page.dart'; // future AI feature
@@ -50,11 +51,10 @@ class WorkoutActionCard extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      // 💡 Future AI integration for workout planning
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(builder: (_) => AIWorkoutPlanPage()),
-                      // );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const WorkoutPlanPage()),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.purple,

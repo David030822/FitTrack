@@ -14,6 +14,8 @@ namespace dotnet.Helper
                 UserID = workout.UserId,
                 CategoryID = workout.CategoryId,
                 Distance = workout.Distance,
+                // Duration = workout.Duration,
+                Description = workout.Description,
                 StartDate = DateTime.SpecifyKind(workout.StartDate, DateTimeKind.Utc),
                 EndDate = workout.EndDate.HasValue 
                     ? DateTime.SpecifyKind(workout.EndDate.Value, DateTimeKind.Utc)
@@ -29,6 +31,8 @@ namespace dotnet.Helper
                 UserId = workoutDAL.UserID,
                 CategoryId = workoutDAL.CategoryID,
                 Distance = workoutDAL.Distance,
+                // Duration = workoutDAL.Duration,
+                Description = workoutDAL.Description,
                 StartDate = DateTime.SpecifyKind(workoutDAL.StartDate, DateTimeKind.Utc),
                 EndDate = workoutDAL.EndDate.HasValue 
                     ? DateTime.SpecifyKind(workoutDAL.EndDate.Value, DateTimeKind.Utc) 
@@ -43,7 +47,9 @@ namespace dotnet.Helper
                 Id = workout.Id,
                 Distance = workout.Distance,
                 StartDate = workout.StartDate,
-                EndDate = workout.EndDate,                     // 🆕 or calculate here
+                EndDate = workout.EndDate,
+                Duration = workout.Duration,
+                Description = workout.Description
             };
         }
 
@@ -56,7 +62,9 @@ namespace dotnet.Helper
                 CategoryId = categoryId,
                 Distance = workoutDTO.Distance ?? 0.0,
                 StartDate = workoutDTO.StartDate ?? DateTime.UtcNow,
-                EndDate = workoutDTO.EndDate
+                EndDate = workoutDTO.EndDate,
+                Duration = workoutDTO.Duration,
+                Description = workoutDTO.Description
             };
         }
     }

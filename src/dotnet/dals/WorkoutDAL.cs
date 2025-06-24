@@ -23,6 +23,8 @@ namespace dotnet.DAL
         public DateTime StartDate { get; set; }
 
         public DateTime? EndDate { get; set; }
+        public int? Duration { get; set; }
+        public string? Description { get; set; }
 
         // Navigation Properties
         [ForeignKey("UserID")]

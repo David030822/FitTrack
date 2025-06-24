@@ -40,7 +40,8 @@ namespace dotnet.Controllers
         public async Task<IActionResult> GetWorkoutsByUserId(int userId)
         {
             var workouts = await _workoutService.GetWorkoutDTOsForUserAsync(userId);
-            foreach (var w in workouts) {
+            foreach (var w in workouts)
+            {
                 Console.WriteLine($"👉Controller WorkoutID: {w.Id}, Category: {(w.Category == null ? "NULL" : w.Category)}, Calories: {(w.Calories == null ? "NULL" : w.Calories.ToString())}, Date: {w.StartDate} - {w.EndDate}");
             }
             return Ok(workouts);
@@ -83,6 +84,10 @@ namespace dotnet.Controllers
                 return NotFound();
 
             existingWorkout.Distance = workoutDTO.Distance ?? existingWorkout.Distance;
+            existingWorkout.StartDate = workoutDTO.StartDate ?? existingWorkout.StartDate;
+            existingWorkout.EndDate = workoutDTO.EndDate ?? existingWorkout.EndDate;
+            existingWorkout.Duration = workoutDTO.Duration ?? existingWorkout.Duration;
+            existingWorkout.Description = workoutDTO.Description ?? existingWorkout.Description;
 
             await _workoutService.UpdateWorkoutAsync(existingWorkout);
             return NoContent();
@@ -108,7 +113,7 @@ namespace dotnet.Controllers
             Console.WriteLine($"🟢 AvgPace: {updateWorkoutDto.AvgPace}");
             try
             {
-                await _workoutService.UpdateWorkoutCaloriesAsync(workoutId, updateWorkoutDto.NewCalories, updateWorkoutDto.Distance ?? 0.0);
+                await _workoutService.UpdateWorkoutCaloriesAsync(workoutId, updateWorkoutDto.NewCalories ?? 0.0, updateWorkoutDto.Distance ?? 0.0);
                 return Ok(new { message = "Calories and distance updated successfully" });
             }
             catch (Exception ex)
