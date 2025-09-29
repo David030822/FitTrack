@@ -255,7 +255,8 @@ project.nuget.cache
 project.assets.json
 
 # Ignore build outputs
-obj/
-bin/
+# Ignore build outputs
+**/obj/
+**/bin/
 *.cache
 *.csproj.nuget.*
