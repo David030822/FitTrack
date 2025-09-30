@@ -248,6 +248,7 @@ GoogleService-Info.plist
 google-services.json
 # Plugins (already resolved through pubspec.yaml)
 .flutter-plugins
+.flutter-plugins-dependecies
 
 # Ignore NuGet packages
 *.nupkg
@@ -260,3 +261,6 @@ project.assets.json
 **/bin/
 *.cache
 *.csproj.nuget.*
+
+fitness_app/lib/responsive/constants.dart
+fitness_app/android/app/.cxx/Debug
