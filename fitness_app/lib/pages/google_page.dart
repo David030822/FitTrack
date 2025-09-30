@@ -19,6 +19,10 @@ class GooglePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+      ),
       body: SafeArea(
         child: Center(
           child: Column(

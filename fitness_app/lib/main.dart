@@ -2,10 +2,12 @@
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:fitness_app/api/firebase_api.dart';
-import 'package:fitness_app/database/food_database.dart';
 import 'package:fitness_app/database/goal_database.dart';
 import 'package:fitness_app/firebase_options.dart';
 import 'package:fitness_app/network/apiclient.dart';
+import 'package:fitness_app/pages/auth_page.dart';
+import 'package:fitness_app/pages/complete_profile_page.dart';
+import 'package:fitness_app/pages/home_page.dart';
 import 'package:fitness_app/pages/login_page.dart';
 import 'package:fitness_app/pages/notification_page.dart';
 import 'package:fitness_app/pages/training_page.dart';
@@ -34,18 +36,13 @@ Future main() async {
   // initialize databases
   await GoalDatabase.initialize();
   await GoalDatabase().saveFirstLaunchDate();
-  await FoodDatabase.initialize();
 
   FlutterNativeSplash.removeAfter(initialization);
 
   runApp(
     MultiProvider(
       providers: [
-        // Food provider
-        ChangeNotifierProvider(create: (context) => FoodDatabase()),
-
         ChangeNotifierProvider(create: (context) => userData),
-
 
         // Goal provider
         ChangeNotifierProvider(create: (context) => GoalDatabase()),
@@ -73,7 +70,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: Provider.of<ThemeProvider>(context).themeData,
       home: ResponsiveLayout(
-        mobileScaffold: /*const MobileScaffold(),*/ const LoginPage(),
+        mobileScaffold: /*const MobileScaffold(),*/ /*const AuthPage()*/const LoginPage(),
         tabletScaffold: const TabletScaffold(),
         desktopScaffold: const DesktopScaffold(),
       ),
@@ -81,6 +78,8 @@ class MyApp extends StatelessWidget {
       routes: {
         '/training_page': (context) => const TrainingPage(),
         '/noti_screen': (context) => const NotificationPage(),
+        '/home': (context) => const HomePage(),
+        '/complete-profile': (context) => CompleteProfileScreen(),
       },
     );
   }

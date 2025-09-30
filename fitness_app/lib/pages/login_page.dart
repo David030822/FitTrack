@@ -1,16 +1,23 @@
 // ignore_for_file: prefer_const_constructors
 
+import 'dart:convert';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fitness_app/components/my_button.dart';
 import 'package:fitness_app/components/my_text_field.dart';
 import 'package:fitness_app/components/square_tile.dart';
-import 'package:fitness_app/pages/apple_page.dart';
+import 'package:fitness_app/pages/complete_profile_page.dart';
+import 'package:fitness_app/pages/facebook_page.dart';
 import 'package:fitness_app/pages/forgot_password_page.dart';
 import 'package:fitness_app/pages/google_page.dart';
 import 'package:fitness_app/pages/home_page.dart';
 import 'package:fitness_app/pages/register_page.dart';
-import 'package:fitness_app/providers/user_data.dart';
+import 'package:fitness_app/responsive/constants.dart';
+import 'package:fitness_app/services/api_service.dart';
+import 'package:fitness_app/services/auth_service.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -21,8 +28,132 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   // text editing controllers
-  final usernameController = TextEditingController();
+  final emailController = TextEditingController();
   final passwordController = TextEditingController();
+
+  void signUserIn() async {
+    await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: emailController.text,
+      password: passwordController.text
+    );
+  }
+
+  void checkLoginStatus(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token != null && token.isNotEmpty) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomePage()),
+      );
+    }
+  }
+
+  void showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
+  void showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.green),
+    );
+  }
+
+  Future<void> loginUser(String email, String password) async {
+    // show loading circle
+    showDialog(
+      context: context,
+      builder: (context) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      }
+    );
+
+    final url = Uri.parse("$BASE_URL/api/users/login");  // 1
+    // final url = Uri.parse("$BASE_URL/api/users/login");   // 2
+
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "email": email,
+        "password": password,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      print("✅Login successful!");
+
+      final responseData = jsonDecode(response.body);
+      String token = responseData["token"]; // Assuming the backend returns a token
+
+      // Store token (for future authenticated requests)
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString("auth_token", token);
+
+      showSuccess("Login successful!");
+
+      final userToken = await AuthService.getToken();
+      if (userToken == null) {
+        throw Exception("User is not logged in");
+      }
+
+      final userId = await AuthService.getUserIdFromToken(token);
+      if (userId == null) {
+        print('❌User ID is NULL!');
+        return;
+      }
+
+      final user = await ApiService.getUserData();
+
+      if (user != null) {
+        final isComplete = user.age != 0 &&
+                          user.gender?.isNotEmpty == true &&
+                          user.height != 0 &&
+                          user.weight != 0 &&
+                          user.bodyFat != 0 &&
+                          user.goal?.isNotEmpty == true;
+
+        if (isComplete) {
+          Future.delayed(Duration(milliseconds: 500), () {
+            if (mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => HomePage()),
+              );
+            }
+          });
+        } else {
+          Future.delayed(Duration(milliseconds: 500), () {
+            if (mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => CompleteProfileScreen()),
+              );
+            }
+          });
+        }
+      } else {
+        showError('Failed to get user data!');
+      }
+    } else {
+      print("❌Login failed: ${response.body}");
+      showError("Login failed! ${response.body}");
+    }
+
+    // pop loading circle
+    Navigator.pop(context);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    checkLoginStatus(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,10 +194,10 @@ class _LoginPageState extends State<LoginPage> {
 
                       SizedBox(height: 25),
 
-                      // username textfield
+                      // email textfield
                       MyTextField(
-                        controller: usernameController,
-                        hintText: 'Username',
+                        controller: emailController,
+                        hintText: 'Email',
                         obscureText: false,
                       ),
 
@@ -89,7 +220,6 @@ class _LoginPageState extends State<LoginPage> {
                           children: [
                             GestureDetector(
                               onTap: () {
-                                Navigator.pop(context);
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -113,14 +243,8 @@ class _LoginPageState extends State<LoginPage> {
                       // sign in button
                       MyButton(
                         text: 'Sign In',
-                        onTap: () async {
-                          await context.read<UserData>().login(usernameController.text, passwordController.text, context);
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => HomePage(),
-                            ),
-                          );
+                        onTap: () {
+                          loginUser(emailController.text, passwordController.text);
                         },
                       ),
 
@@ -158,14 +282,14 @@ class _LoginPageState extends State<LoginPage> {
 
                       SizedBox(height: 50),
 
-                      // google + apple sign in buttons
+                      // google + facebook sign in buttons
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           // google button
                           GestureDetector(
+                            // onTap: () => AuthService().signInWithGoogle(context),
                             onTap: () {
-                              Navigator.pop(context);
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -181,20 +305,19 @@ class _LoginPageState extends State<LoginPage> {
 
                           SizedBox(width: 10),
 
-                          // apple button
+                          // facebook button
                           GestureDetector(
                             onTap: () {
-                              Navigator.pop(context);
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => ApplePage(),
+                                  builder: (context) => FacebookPage(),
                                 ),
                               );
                             },
                             child: SquareTile(
                               height: 40,
-                              imagePath: 'assets/images/apple.png',
+                              imagePath: 'assets/images/facebook.png',
                             ),
                           ),
                         ],
@@ -215,7 +338,6 @@ class _LoginPageState extends State<LoginPage> {
                           const SizedBox(width: 4),
                           GestureDetector(
                             onTap: () {
-                              Navigator.pop(context);
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(

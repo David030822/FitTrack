@@ -57,7 +57,7 @@ class DefaultFirebaseOptions {
     appId: '1:716096086139:android:292ebfe9bc65d63f2802de',
     messagingSenderId: '716096086139',
     projectId: 'fitnessapp-10798',
-    storageBucket: 'fitnessapp-10798.appspot.com',
+    storageBucket: 'fitnessapp-10798.firebasestorage.app',
   );
 
 }
